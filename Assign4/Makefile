@@ -25,9 +25,13 @@ hex.o: hex.cpp hex.h
 
 .PHONY: clean darthDiff
 clean:
-	rm -f rv32i *.o
+	rm -rf rv32i *.o testdata outdata
+
+darthDownload:
+	mkdir -p testdata && wget --no-directories --directory-prefix=testdata --recursive --no-parent --accept .bin,.out https://faculty.cs.niu.edu/~winans/CS463/2022-fa/assignments/a4/handouts4/
 
 darthDiff: rv32i
+	mkdir -p outdata
 	./rv32i -m1 testdata/li.bin > outdata/li-m1.out && sdiff -s testdata/li-m1.out outdata/li-m1.out
 	./rv32i -m20 testdata/reladdr.bin > outdata/reladdr-m20.out && sdiff -s testdata/reladdr-m20.out outdata/reladdr-m20.out
 	./rv32i -m40 testdata/tinyprog.bin > outdata/tinyprog-m40.out && sdiff -s testdata/tinyprog-m40.out outdata/tinyprog-m40.out
@@ -41,5 +45,3 @@ darthDiff: rv32i
 	./rv32i -m500 testdata/torture5.bin > outdata/torture5-m500.out && sdiff -s testdata/torture5-m500.out outdata/torture5-m500.out
 	./rv32i -m1000 testdata/pcrel.bin > outdata/pcrel-m1000.out && sdiff -s testdata/pcrel-m1000.out outdata/pcrel-m1000.out
 	./rv32i -m33e68 testdata/sieve.bin > outdata/sieve-m33e68.out && sdiff -s testdata/sieve-m33e68.out outdata/sieve-m33e68.out
-	./rv32i -m103fb testdata/generated.bin > outdata/generated-m103fb.out && sdiff -s testdata/generated-m103fb.out outdata/generated-m103fb.out
-	./rv32i -m20000 testdata/random128k.bin > outdata/random128k-m20000.out && sdiff -s testdata/random128k-m20000.out outdata/random128k-m20000.out
