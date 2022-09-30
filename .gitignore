@@ -1,6 +1,8 @@
 *.o
 *.out
 *.bin
+*.in
+*.run
 
 labtrain
 prog2
