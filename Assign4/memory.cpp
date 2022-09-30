@@ -99,9 +99,7 @@ uint8_t memory::get8(uint32_t addr) const
  */
 uint16_t memory::get16(uint32_t addr) const
 {
-    std::string tempString = hex::to_hex8(get8(addr+1)) + hex::to_hex8(get8(addr)); //Create string object from concatenated get8() calls.
-    uint16_t tempInt = std::stoi(tempString, NULL, 16); //Convert back to integer in hexidecimal form.
-    return tempInt;
+    return get8(addr) | (static_cast<uint16_t>(get8(addr+1)) << 8);
 }
 
 /**
@@ -114,9 +112,7 @@ uint16_t memory::get16(uint32_t addr) const
  */
 uint32_t memory::get32(uint32_t addr) const
 {
-    std::string tempString = hex::to_hex16(get16(addr+2)) + hex::to_hex16(get16(addr)); //Create string object from concatenated get16() calls.
-    uint32_t tempInt = std::stol(tempString, NULL, 16); //Convert back to integer in hexidecimal form. 
-    return tempInt;
+    return get16(addr) | (static_cast<uint32_t>(get16(addr+2)) << 16);;
 }
 
 /**

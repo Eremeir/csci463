@@ -30,21 +30,6 @@ std::string hex::to_hex8(uint8_t i)
 }
 
 /**
- * @brief Print 16 bit in hex.
- * 
- * Creates a stringstream object, formats, then extracts and returns formatted string.
- * 
- * @param i Unsigned 16bit integer to reformat to hexidecimal.
- * @return string representing integer in hexidecimal form.
- */
-std::string hex::to_hex16(uint16_t i)
-{
-    std::ostringstream os;
-    os << std::hex << std::setfill('0') << std::setw(4) << i;
-    return os.str();  
-}
-
-/**
  * @brief Print 32 bit in hex.
  * 
  * Creates a stringstream object, formats, then extracts and returns formatted string.
