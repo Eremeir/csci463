@@ -27,10 +27,10 @@ hex.o: hex.cpp hex.h
 clean:
 	rm -rf rv32i *.o testdata outdata
 
-darthDownload:
+download:
 	mkdir -p testdata && wget --no-directories --directory-prefix=testdata --recursive --no-parent --accept .bin,.out https://faculty.cs.niu.edu/~winans/CS463/2022-fa/assignments/a4/handouts4/
 
-darthDiff: rv32i
+diff: rv32i
 	mkdir -p outdata
 	./rv32i -m1 testdata/li.bin > outdata/li-m1.out && sdiff -s testdata/li-m1.out outdata/li-m1.out
 	./rv32i -m20 testdata/reladdr.bin > outdata/reladdr-m20.out && sdiff -s testdata/reladdr-m20.out outdata/reladdr-m20.out

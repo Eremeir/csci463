@@ -11,29 +11,22 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
-
 #include "hex.h"
 
 /**
  * @brief RISCV32 Decode
  * 
+ * Class to facilitate decoding of RV32I instructions into component elements.
+ * 
  */
 class rv32i_decode : public hex
 {
 public:
-
-    /**
-     * @brief 
-     * 
-     * @param addr The memory address where the insn is stored.
-     * @param insn 
-     * @return std::string 
-     */
-    static std::string decode(uint32_t addr, uint32_t insn);
+    static std::string decode(uint32_t addr, uint32_t insn); //Decode memory address instruction.
 
 protected:
     static constexpr int mnemonic_width             = 8;
-
+    //Opcodes to designate specific instructions or instruction typegroups.
     static constexpr uint32_t opcode_lui            = 0b0110111;
     static constexpr uint32_t opcode_auipc          = 0b0010111;
     static constexpr uint32_t opcode_jal            = 0b1101111;
@@ -88,44 +81,41 @@ protected:
     static constexpr uint32_t funct3_csrrsi         = 0b110;
     static constexpr uint32_t funct3_csrrci         = 0b111;
 
-    static uint32_t get_opcode(uint32_t insn);
-    static uint32_t get_rd(uint32_t insn);
-    static uint32_t get_funct3(uint32_t insn);
-    static uint32_t get_rs1(uint32_t insn);
-    static uint32_t get_rs2(uint32_t insn);
-    static uint32_t get_funct7(uint32_t insn);
-    static int32_t get_imm_i(uint32_t insn);
-    static int32_t get_imm_u(uint32_t insn);
-    static int32_t get_imm_b(uint32_t insn);
-    static int32_t get_imm_s(uint32_t insn);
-    static int32_t get_imm_j(uint32_t insn);
+    static uint32_t get_opcode(uint32_t insn); //Retrieve instruction opcode.
+    static uint32_t get_rd(uint32_t insn);     //Retrieve result xregister.
+    static uint32_t get_funct3(uint32_t insn); //Retrieve funct3 discriminator.
+    static uint32_t get_rs1(uint32_t insn);    //Retrieve first source operand xregister.
+    static uint32_t get_rs2(uint32_t insn);    //Retrieve second source operand xregister.
+    static uint32_t get_funct7(uint32_t insn); //Retrieve funct7 discriminator.
 
-    static constexpr uint32_t XLEN = 32;
+    static int32_t get_imm_i(uint32_t insn);   //Retrieve immediate numeric operand. (I Type)
+    static int32_t get_imm_u(uint32_t insn);   //Retrieve immediate numeric operand. (U Type)
+    static int32_t get_imm_b(uint32_t insn);   //Retrieve immediate numeric operand. (B Type)
+    static int32_t get_imm_s(uint32_t insn);   //Retrieve immediate numeric operand. (S Type)
+    static int32_t get_imm_j(uint32_t insn);   //Retrieve immediate numeric operand. (J Type)
 
-    static std::string render_illegal_insn();
-    static std::string render_lui(uint32_t insn);
-    static std::string render_auipc(uint32_t insn);
+    static constexpr uint32_t XLEN = 32;       //Bit length of an xregister.
 
-    ///@parm addr The memory address where the insn is stored.
-    static std::string render_jal(uint32_t addr, uint32_t insn);
+    static std::string render_illegal_insn();       //Render illegal instruction message.
+    static std::string render_lui(uint32_t insn);   //Render lui instruction message.
+    static std::string render_auipc(uint32_t insn); //Render auipc instruction message.
+    static std::string render_jal(uint32_t addr, uint32_t insn); //Render jal instruction message.
+    static std::string render_jalr(uint32_t insn);               //Render jalr instruction message.
 
-    static std::string render_jalr(uint32_t insn);
+    static std::string render_btype(uint32_t addr, uint32_t insn, const char *mnemonic);        //Render B Type instruction.
+    static std::string render_itype_load(uint32_t insn, const char *mnemonic);                  //Render I Type-LOAD instruction.
+    static std::string render_stype(uint32_t insn, const char *mnemonic);                       //Render S Type instruction.
+    static std::string render_itype_alu(uint32_t insn, const char *mnemonic, int32_t imm_i);    //Render I Type-ALU instruction.
+    static std::string render_rtype(uint32_t insn, const char *mnemonic);                       //Render R Type instruction.
 
-    ///@parm addr The memory address where the insn is stored.
-    static std::string render_btype(uint32_t addr, uint32_t insn, const char *mnemonic);
+    static std::string render_ecall(uint32_t insn);                         //Render ecall instruction message.
+    static std::string render_ebreak(uint32_t insn);                        //Render ebreak instruction message.
+    static std::string render_csrrx(uint32_t insn, const char *mnemonic);   //Render csrrx instruction set message.
+    static std::string render_csrrxi(uint32_t insn, const char *mnemonic);  //Render csrrxi instruction message.
 
-    static std::string render_itype_load(uint32_t insn, const char *mnemonic);
-    static std::string render_stype(uint32_t insn, const char *mnemonic);
-    static std::string render_itype_alu(uint32_t insn, const char *mnemonic, int32_t imm_i);
-    static std::string render_rtype(uint32_t insn, const char *mnemonic);
-    static std::string render_ecall(uint32_t insn);
-    static std::string render_ebreak(uint32_t insn);
-    static std::string render_csrrx(uint32_t insn, const char *mnemonic);
-    static std::string render_csrrxi(uint32_t insn, const char *mnemonic);
-
-    static std::string render_reg(int r);
-    static std::string render_base_disp(uint32_t base, int32_t disp);
-    static std::string render_mnemonic(const std::string &mnemonic);
+    static std::string render_reg(int r);                                   //Render xregister formatting.
+    static std::string render_base_disp(uint32_t base, int32_t disp);       //Render displacement off of base formatting.
+    static std::string render_mnemonic(const std::string &mnemonic);        //Render mnemonic formatting.
 };
 
 #endif
