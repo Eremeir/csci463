@@ -1,0 +1,8 @@
+*.o
+*.out
+*.bin
+
+labtrain
+prog2
+memsim
+rv32i
