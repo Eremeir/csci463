@@ -1,0 +1,5 @@
+*.o
+*.in
+*.run
+
+memsim
