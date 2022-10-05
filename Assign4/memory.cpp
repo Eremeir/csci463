@@ -255,7 +255,7 @@ bool memory::load_file(const std::string &fname)
         {
             if(!check_illegal(addr)) //Check validity of index address before writing vlaues.
             {
-                mem[addr] = i;
+                set8(addr, i); //Write byte to memory.
             }
             else
             {
