@@ -1,10 +1,10 @@
 #
-# Assignment #4
+# Assignment #5
 # AUTHOR:  Matt Borek
 #
 
 CXX = g++
-CXXFLAGS = -g -ansi -pedantic -Wall -Werror -Wextra -std=c++14
+CXXFLAGS = -g -Wall -Werror -std=c++14
 
 all: rv32i 
 
@@ -23,12 +23,21 @@ memory.o: memory.cpp memory.h
 hex.o: hex.cpp hex.h
 	$(CXX) $(CXXFLAGS) -c -o $@ hex.cpp
 
-.PHONY: clean darthDiff
+registerfile.o: registerfile.cpp registerfile.h
+	$(CXX) $(CXXFLAGS) -c -o $@ registerfile.cpp
+
+rv32i_hart.o: rv32i_hart.cpp rv32i_hart.h
+	$(CXX) $(CXXFLAGS) -c -o $@ rv32i_hart.cpp
+
+cpu_single_hart.o: cpu_single_hart.cpp cpu_single_hart.h
+	$(CXX) $(CXXFLAGS) -c -o $@ cpu_single_hart.cpp
+
+.PHONY: clean download diff
 clean:
 	rm -rf rv32i *.o testdata outdata
 
 download:
-	mkdir -p testdata && wget --no-directories --directory-prefix=testdata --recursive --no-parent --accept .bin,.out https://faculty.cs.niu.edu/~winans/CS463/2022-fa/assignments/a4/handouts4/
+	mkdir -p testdata && wget --no-directories --directory-prefix=testdata --recursive --no-parent --accept .bin,.out https://faculty.cs.niu.edu/~winans/CS463/2022-fa/assignments/a5/handouts5/
 
 diff: rv32i
 	mkdir -p outdata

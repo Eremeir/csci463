@@ -23,7 +23,7 @@ memory.o: memory.cpp memory.h
 hex.o: hex.cpp hex.h
 	$(CXX) $(CXXFLAGS) -c -o $@ hex.cpp
 
-.PHONY: clean darthDiff
+.PHONY: clean download diff
 clean:
 	rm -rf rv32i *.o testdata outdata
 
