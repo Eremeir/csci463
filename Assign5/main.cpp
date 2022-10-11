@@ -26,8 +26,13 @@ using std::endl;
  */
 static void usage()
 {
-	cerr << "Usage: rv32i [-m hex-mem-size] infile" << endl;
+	cerr << "Usage: rv32i [-d] [-i] [-r] [-z] [-l exec - limit ] [-m hex -mem - size ] infile" << endl;
+	cerr << "    -d show disassembly before program execution" << endl;
+	cerr << "    -i show instruction printing during execution" << endl;
+	cerr << "    -l maximum number of instructions to exec" << endl;
 	cerr << "    -m specify memory size (default = 0x100)" << endl;
+	cerr << "    -r show register printing during execution" << endl;
+	cerr << "    -z show a dump of the regs & memory after simulation" << endl;
 	exit(1); //Terminate program.
 }
 
@@ -58,15 +63,55 @@ static void disassemble(const memory &mem)
 int main(int argc, char **argv)
 {
 	uint32_t memory_limit = 0x100;	// default memory size is 0x100
+	bool dFlag = false;
+	//bool iFlag = false;
+	//bool rFlag = false;
+	//bool zFlag = false;
+
 	int opt;
-	while ((opt = getopt(argc, argv, "m:")) != -1) //Test input arguments.
+	while ((opt = getopt(argc, argv, "dil:m:rz")) != -1) //Test input arguments.
 	{
 		switch(opt)
 		{
+		case 'd': //If -d flag specified, show a disassembly of the entire memory before program simulation begins.
+			{
+				dFlag = true;
+				cout << "dflag on" << endl;
+			}
+			break;
+
+		case 'i': //If -i flag specified, show instruction printing during execution.
+			{
+				//iFlag = true;
+				cout << "iflag on" << endl;
+			}
+			break;
+
+		case 'l': //If -l flag specified, update maximum limit of instructions to execute. Zero means there is no limit.
+			{
+				cout << "lflag on" << endl;
+			}
+			break;
+
 		case 'm': //If -m flag specified, update memory limit with new value.
 			{
 				std::istringstream iss(optarg);
 				iss >> std::hex >> memory_limit;
+				cout << "mflag on" << endl;
+			}
+			break;
+
+		case 'r': //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
+			{
+				//rFlag = true;
+				cout << "rflag on" << endl;
+			}
+			break;
+
+		case 'z': //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
+			{
+				//zFlag = true;
+				cout << "zflag on" << endl;
 			}
 			break;
 
@@ -83,8 +128,13 @@ int main(int argc, char **argv)
 	if (!mem.load_file(argv[optind])) //Test if file opened and loaded values.
 		usage();
 
-	disassemble(mem);
-	mem.dump();
+	if(dFlag)
+	{
+		disassemble(mem);
+	}
+
+	//disassemble(mem);
+	//mem.dump();
 
 	return 0;
 }
