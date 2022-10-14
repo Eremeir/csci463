@@ -11,7 +11,6 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
-
 #include <vector>
 #include "hex.h"
 
