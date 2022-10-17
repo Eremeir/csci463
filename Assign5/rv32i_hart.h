@@ -16,25 +16,36 @@
 #include "rv32i_decode.h"
 #include "registerfile.h"
 
+/**
+ * @brief Simulated Hardware Thread Class
+ * 
+ * Facilitates the creation and operation of simulated hardware threads, allowing execution of binary code.
+ *
+ */
 class rv32i_hart : public rv32i_decode
 {
 public:
-    rv32i_hart(memory &m) : mem(m) { }
-    void set_show_instructions(bool b) { show_instructions = b; }
-    void set_show_registers(bool b) { show_registers = b; }
-    bool is_halted() const { return halt; }
-    const std::string &get_halt_reason() const { return halt_reason; }
-    uint64_t get_insn_counter() const { return insn_counter; }
-    void set_mhartid(int i) { mhartid = i; }
+    /**
+     * @brief Construct a new rv32i hardware thread.
+     * 
+     * @param m Size for the memory object to use in initializing the hardware thread.
+     */
+    rv32i_hart(memory &m) : mem(m) { }           //Constructor
+    void set_show_instructions(bool b);          //Set the show instructions flag.
+    void set_show_registers(bool b);             //Set the show registers flag.
+    bool is_halted() const;                      //Return halt status.
+    const std::string& get_halt_reason() const;  //Return halt reason.
+    uint64_t get_insn_counter() const;           //Get instruction counter.
+    void set_mhartid(int ID);                    //Set mhart ID.
 
-    void tick(const std::string &hdr="")
-    void dump(const std::string &hdr="") const;
+    void tick(const std::string &hdr="");        //Tick instruction execution.
+    void dump(const std::string &hdr="") const;  //Dump hardware thread.
     void reset();
 
 private:
     static contexpr int instruction_width           = 35;
-    void exec(uint32_t insn, std::ostream*);
-    void exec_illegal_insn(uint32_t insn, std::ostream*);
+    void exec(uint32_t insn, std::ostream* pos);              //Dump hardware thread.
+    void exec_illegal_insn(uint32_t insn, std::ostream* pos); //Reset hardware thread.
     //void exec_xxx(uint32_t insn, std::ostream*)
 
     bool halt = { false };
@@ -47,8 +58,8 @@ private:
     uint32_t mhartid = { 0 };
 
 protected:
-    registerfile regs;
-    memory &mem;
+    registerfile regs; //Vector to simulate registers.
+    memory &mem;       //Vector to simulate memory.
 };
 
 #endif
