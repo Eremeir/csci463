@@ -8,29 +8,29 @@ CXXFLAGS = -g -Wall -Werror -std=c++14
 
 all: rv32i 
 
-rv32i: main.o rv32i_decode.o memory.o hex.o
-	$(CXX) $(CXXFLAGS) -o $@ main.o rv32i_decode.o memory.o hex.o
+rv32i: main.o rv32i_decode.o memory.o hex.o registerfile.o rv32i_hart.o cpu_single_hart.o
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 main.o: main.cpp rv32i_decode.h memory.h
-	$(CXX) $(CXXFLAGS) -c -o $@ main.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 rv32i_decode.o: rv32i_decode.cpp rv32i_decode.h
-	$(CXX) $(CXXFLAGS) -c -o $@ rv32i_decode.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 memory.o: memory.cpp memory.h
-	$(CXX) $(CXXFLAGS) -c -o $@ memory.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 hex.o: hex.cpp hex.h
-	$(CXX) $(CXXFLAGS) -c -o $@ hex.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 registerfile.o: registerfile.cpp registerfile.h
-	$(CXX) $(CXXFLAGS) -c -o $@ registerfile.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 rv32i_hart.o: rv32i_hart.cpp rv32i_hart.h
-	$(CXX) $(CXXFLAGS) -c -o $@ rv32i_hart.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 cpu_single_hart.o: cpu_single_hart.cpp cpu_single_hart.h
-	$(CXX) $(CXXFLAGS) -c -o $@ cpu_single_hart.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 .PHONY: clean download diff
 clean:
