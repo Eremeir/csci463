@@ -13,6 +13,7 @@
 #include <getopt.h>
 #include "memory.h"
 #include "rv32i_decode.h"
+#include "cpu_single_hart.h"
 
 using std::cerr;
 using std::cout;
@@ -63,10 +64,11 @@ static void disassemble(const memory &mem)
 int main(int argc, char **argv)
 {
 	uint32_t memory_limit = 0x100;	// default memory size is 0x100
+	uint64_t exec_limit = 0;
 	bool dFlag = false;
-	//bool iFlag = false;
-	//bool rFlag = false;
-	//bool zFlag = false;
+	bool iFlag = false;
+	bool rFlag = false;
+	bool zFlag = false;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "dil:m:rz")) != -1) //Test input arguments.
@@ -82,13 +84,15 @@ int main(int argc, char **argv)
 
 		case 'i': //If -i flag specified, show instruction printing during execution.
 			{
-				//iFlag = true;
+				iFlag = true;
 				cout << "iflag on" << endl;
 			}
 			break;
 
 		case 'l': //If -l flag specified, update maximum limit of instructions to execute. Zero means there is no limit.
 			{
+				std::istringstream iss(optarg);
+				iss >> exec_limit;
 				cout << "lflag on" << endl;
 			}
 			break;
@@ -103,14 +107,14 @@ int main(int argc, char **argv)
 
 		case 'r': //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
 			{
-				//rFlag = true;
+				rFlag = true;
 				cout << "rflag on" << endl;
 			}
 			break;
 
 		case 'z': //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
 			{
-				//zFlag = true;
+				zFlag = true;
 				cout << "zflag on" << endl;
 			}
 			break;
@@ -125,6 +129,10 @@ int main(int argc, char **argv)
 
 	memory mem(memory_limit); //Create and initialize memory by set memory limit.
 
+	cpu_single_hart cpu(mem); ////Create a simulated CPU with a single hardware thread, passing in simulated memory.
+	cpu.set_show_instructions(iFlag);
+	cpu.set_show_registers(rFlag);
+
 	if (!mem.load_file(argv[optind])) //Test if file opened and loaded values.
 		usage();
 
@@ -133,8 +141,13 @@ int main(int argc, char **argv)
 		disassemble(mem);
 	}
 
-	//disassemble(mem);
-	//mem.dump();
+	cpu.run(exec_limit);
+
+	if(zFlag)
+	{
+		cpu.dump();
+		mem.dump();
+	}
 
 	return 0;
 }

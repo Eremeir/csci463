@@ -11,7 +11,7 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
-#include <string>
+//#include <string>
 #include "memory.h"
 #include "rv32i_decode.h"
 #include "registerfile.h"
@@ -40,10 +40,10 @@ public:
 
     void tick(const std::string &hdr="");        //Tick instruction execution.
     void dump(const std::string &hdr="") const;  //Dump hardware thread.
-    void reset();
+    void reset();                                //Reset hardware thread.
 
 private:
-    static contexpr int instruction_width           = 35;
+    static constexpr int instruction_width           = 35;
     void exec(uint32_t insn, std::ostream* pos);              //Dump hardware thread.
     void exec_illegal_insn(uint32_t insn, std::ostream* pos); //Reset hardware thread.
     //void exec_xxx(uint32_t insn, std::ostream*)

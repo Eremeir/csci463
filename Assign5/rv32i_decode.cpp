@@ -25,7 +25,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
 {
     switch(get_opcode(insn)) //Render based on determined opcode.
     {
-        default:                return render_illegal_insn();
+        default:                return render_illegal_insn(insn);
         case opcode_lui:        return render_lui(insn);
         case opcode_auipc:      return render_auipc(insn);
         case opcode_jal:        return render_jal(addr, insn);
@@ -34,7 +34,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_btype:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:            return render_illegal_insn();
+            default:            return render_illegal_insn(insn);
             case funct3_beq:    return render_btype(addr, insn, "beq");
             case funct3_bne:    return render_btype(addr, insn, "bne");
             case funct3_blt:    return render_btype(addr, insn, "blt");
@@ -47,7 +47,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_load_imm:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn();
+            default:                return render_illegal_insn(insn);
             case funct3_lb:         return render_itype_load(insn, "lb");
             case funct3_lh:         return render_itype_load(insn, "lh");
             case funct3_lw:         return render_itype_load(insn, "lw");
@@ -59,7 +59,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_stype:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn();
+            default:                return render_illegal_insn(insn);
             case funct3_sb:         return render_stype(insn, "sb");
             case funct3_sh:         return render_stype(insn, "sh");
             case funct3_sw:         return render_stype(insn, "sw");
@@ -69,7 +69,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_alu_imm:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn();
+            default:                return render_illegal_insn(insn);
             case funct3_add:        return render_itype_alu(insn, "addi", get_imm_i(insn));
             case funct3_slt:        return render_itype_alu(insn, "slti", get_imm_i(insn));
             case funct3_sltu:       return render_itype_alu(insn, "sltiu", get_imm_i(insn));
@@ -81,7 +81,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
             case funct3_srx:
             switch(get_funct7(insn)) //Discriminate further by funct7.
             {
-                default:            return render_illegal_insn();
+                default:            return render_illegal_insn(insn);
                 case funct7_sra:    return render_itype_alu(insn, "srai", get_imm_i(insn)%XLEN);
                 case funct7_srl:    return render_itype_alu(insn, "srli", get_imm_i(insn)%XLEN);
             }
@@ -92,7 +92,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_rtype:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn();
+            default:                return render_illegal_insn(insn);
             case funct3_sll:        return render_rtype(insn, "sll");
             case funct3_slt:        return render_rtype(insn, "slt");
             case funct3_sltu:       return render_rtype(insn, "sltu");
@@ -103,7 +103,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
             case funct3_add:
             switch(get_funct7(insn))
             {
-                default:            return render_illegal_insn();
+                default:            return render_illegal_insn(insn);
                 case funct7_add:    return render_rtype(insn, "add");
                 case funct7_sub:    return render_rtype(insn, "sub");
             }
@@ -112,7 +112,7 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
             case funct3_srx:
             switch(get_funct7(insn)) //Discriminate further by funct7.
             {
-                default:            return render_illegal_insn();
+                default:            return render_illegal_insn(insn);
                 case funct7_sra:    return render_rtype(insn, "sra");
                 case funct7_srl:    return render_rtype(insn, "srl");
             }
@@ -123,12 +123,12 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         case opcode_system:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn();
+            default:                return render_illegal_insn(insn);
             
             case eCode:
             switch(insn) //Check if instruction matches system ecodes.            
             {
-                default:            return render_illegal_insn();
+                default:            return render_illegal_insn(insn);
                 case insn_ecall:    return render_ecall(insn);
                 case insn_ebreak:   return render_ebreak(insn);
             }
@@ -316,8 +316,9 @@ int32_t rv32i_decode::get_imm_j(uint32_t insn)
  * 
  * @return string indicating INSN was not recognized.
  */
-std::string rv32i_decode::render_illegal_insn()
+std::string rv32i_decode::render_illegal_insn(uint32_t insn)
 {
+    (void)insn; //Insn not used in function, but part of standard spec.
     return "ERROR: UNIMPLEMENTED INSTRUCTION";
 }
 

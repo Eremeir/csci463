@@ -8,6 +8,7 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
+#include <iostream>
 #include "rv32i_hart.h"
 
 /**
@@ -25,7 +26,7 @@ void rv32i_hart::set_show_instructions(bool b)
 /**
  * @brief Set the show registers flag.
  * 
- * When flag is true, dump the registers before each instruction is exeduted.
+ * When flag is true, dump the registers before each instruction is executed.
  *
  * @param bool indicating whether the flag should be on or off.
  */
@@ -90,14 +91,14 @@ void rv32i_hart::set_mhartid(int ID)
  * 
  * @param hdr String to be printed to the left of any output.
  */
-void rv32i_hart::tick(const std::string &hdr="")
+void rv32i_hart::tick(const std::string &hdr)
 {
     if(is_halted())
     {   
         return;
     }
     
-    if(show_registers())
+    if(show_registers)
     {
         dump(hdr);
     }
@@ -105,7 +106,7 @@ void rv32i_hart::tick(const std::string &hdr="")
     if(!(pc % 4 == 0))
     {
         halt = true;
-        halt_reason = "PC alignment error"
+        halt_reason = "PC alignment error";
         return;
     }
 
@@ -113,15 +114,16 @@ void rv32i_hart::tick(const std::string &hdr="")
 
     uint32_t insn = mem.get32(pc);
 
-    if(show_instructions())
+    if(show_instructions)
     {
-        std::cout << hdr << hex::to_hex0x32(pc) << " " << hex::to_hex0x32(insn);
+        std::cout << hdr << hex::to_hex32(pc) << ": " << hex::to_hex32(insn) << std::endl;
         exec(insn, &std::cout);
     }
     else
     {
         exec(insn, nullptr);
     }
+    pc += 4;
 }
 
 /**
@@ -131,7 +133,7 @@ void rv32i_hart::tick(const std::string &hdr="")
  * 
  * @param hdr String to be printed to the left of any output.
  */
-void rv32i_hart::dump(const std::string &hdr="") const
+void rv32i_hart::dump(const std::string &hdr) const
 {
 
 }

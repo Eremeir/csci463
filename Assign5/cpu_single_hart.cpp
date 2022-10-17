@@ -8,6 +8,7 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
+#include <iostream>
 #include "cpu_single_hart.h"
 
 /**
@@ -40,5 +41,5 @@ void cpu_single_hart::run(uint64_t exec_limit)
         std::cout << get_halt_reason() << std::endl;
     }
 
-    std::cout << get_insn_counter() << "instructions executed" << std::endl;
+    std::cout << get_insn_counter() << " instructions executed" << std::endl;
 }

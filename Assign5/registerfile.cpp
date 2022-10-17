@@ -28,7 +28,7 @@ registerfile::registerfile()
  * @note Redundant, done automatically at end of scope.
  * 
  */
-registerfile~registerfile()
+registerfile::~registerfile()
 {
 
 } 

@@ -96,7 +96,7 @@ protected:
 
     static constexpr uint32_t XLEN = 32;       //Bit length of an xregister.
 
-    static std::string render_illegal_insn();       //Render illegal instruction message.
+    static std::string render_illegal_insn(uint32_t insn);       //Render illegal instruction message.
     static std::string render_lui(uint32_t insn);   //Render lui instruction message.
     static std::string render_auipc(uint32_t insn); //Render auipc instruction message.
     static std::string render_jal(uint32_t addr, uint32_t insn); //Render jal instruction message.
