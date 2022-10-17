@@ -11,18 +11,23 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
-#include <vector>
 #include "hex.h"
 
+/**
+ * @brief Simulated Register Class
+ * 
+ *  Facilitates the creation and operation of 32 simulated registers.
+ *
+ */
 class registerfile : public hex
 {
 public:
     registerfile();  //Constructor
     ~registerfile(); //Destructor
 
-    void reset();                        //Initialize registers.
+    void reset();                        //Reset and initialize registers.
     void set(uint32_t reg, int32_t val); //Set register value.
-    int32_t get(uint32_t  reg);          //Return register value.
+    int32_t get(uint32_t reg);           //Return register value.
     void dump(const std::string &hdr);   //Dump register contents.
     
 private:
