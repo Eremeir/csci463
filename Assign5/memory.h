@@ -17,7 +17,7 @@
 /**
  * @brief Simulated Memory Class
  * 
- * Faxilitates the creation and operation of simulated memory, allowing reading and writing of simulated byte data.
+ * Facilitates the creation and operation of simulated memory, allowing reading and writing of simulated byte data.
  * 
  */
 class memory : public hex
