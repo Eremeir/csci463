@@ -44,8 +44,12 @@ public:
 
 private:
     static constexpr int instruction_width           = 35;
-    void exec(uint32_t insn, std::ostream* pos);              //Dump hardware thread.
-    void exec_illegal_insn(uint32_t insn, std::ostream* pos); //Reset hardware thread.
+    void exec(uint32_t insn, std::ostream* pos);              //Execute instruction.
+    void exec_illegal_insn(uint32_t insn, std::ostream* pos); //Illegal Instruction Subroutine.
+    void exec_lui(uint32_t insn, std::ostream* pos);          //Execute lui.
+    void exec_auipc(uint32_t insn, std::ostream* pos);        //Execute auipc.
+    void exec_jal(uint32_t insn, std::ostream* pos);          //Execute jal.
+    void exec_jalr(uint32_t insn, std::ostream* pos);         //Execute jalr.
     //void exec_xxx(uint32_t insn, std::ostream*)
 
     bool halt = { false };
