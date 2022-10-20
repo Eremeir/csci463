@@ -50,7 +50,11 @@ private:
     void exec_auipc(uint32_t insn, std::ostream* pos);        //Execute auipc.
     void exec_jal(uint32_t insn, std::ostream* pos);          //Execute jal.
     void exec_jalr(uint32_t insn, std::ostream* pos);         //Execute jalr.
-    //void exec_xxx(uint32_t insn, std::ostream*)
+
+    void exec_btype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);       //Execute B Type instruction.
+    void exec_itype_load(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);  //Execute I Type-LOAD instruction.
+    void exec_stype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);       //Execute S Type instruction.
+    void exec_itype_alu(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);   //Execute I Type-ALU instruction.
 
     bool halt = { false };
     bool show_instructions = { false };

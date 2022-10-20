@@ -164,6 +164,7 @@ void rv32i_hart::reset()
  */
 void rv32i_hart::exec(uint32_t insn, std::ostream* pos)
 {
+    uint32_t funct3 = get_funct3(insn);
     switch(get_opcode(insn)) //Render based on determined opcode.
     {
         default:                exec_illegal_insn(insn,pos); return;
@@ -171,65 +172,65 @@ void rv32i_hart::exec(uint32_t insn, std::ostream* pos)
         case opcode_auipc:      exec_auipc(insn, pos); return;
         case opcode_jal:        exec_jal(insn, pos); return;
         case opcode_jalr:       exec_jalr(insn, pos); return;
-        /*
-        case opcode_btype:
-        switch(get_funct3(insn)) //Discriminate further by funct3.
+        
+        case opcode_btype:      
+        switch(funct3) //Discriminate further by funct3.
         {
-            default:            return render_illegal_insn(insn);
-            case funct3_beq:    return render_btype(addr, insn, "beq");
-            case funct3_bne:    return render_btype(addr, insn, "bne");
-            case funct3_blt:    return render_btype(addr, insn, "blt");
-            case funct3_bge:    return render_btype(addr, insn, "bge");
-            case funct3_bltu:   return render_btype(addr, insn, "bltu");
-            case funct3_bgeu:   return render_btype(addr, insn, "bgeu");
+            default:            exec_illegal_insn(insn, pos); return;
+            case funct3_beq:    exec_btype(insn, pos, funct3, "beq"); return;
+            case funct3_bne:    exec_btype(insn, pos, funct3, "bne"); return;
+            case funct3_blt:    exec_btype(insn, pos, funct3, "blt"); return;
+            case funct3_bge:    exec_btype(insn, pos, funct3, "bge"); return;
+            case funct3_bltu:   exec_btype(insn, pos, funct3, "bltu"); return;
+            case funct3_bgeu:   exec_btype(insn, pos, funct3, "bgeu"); return;
+        }
+        assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
+        
+        case opcode_load_imm:   
+        switch(funct3) //Discriminate further by funct3.
+        {
+            default:                exec_illegal_insn(insn, pos); return;
+            case funct3_lb:         exec_itype_load(insn, pos, funct3, "lb"); return;
+            case funct3_lh:         exec_itype_load(insn, pos, funct3, "lh"); return;
+            case funct3_lw:         exec_itype_load(insn, pos, funct3, "lw"); return;
+            case funct3_lbu:        exec_itype_load(insn, pos, funct3, "lbu"); return;
+            case funct3_lhu:        exec_itype_load(insn, pos, funct3, "lhu"); return;
+        }
+        assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
+        
+        case opcode_stype:       
+        switch(funct3) //Discriminate further by funct3.
+        {
+            default:                exec_illegal_insn(insn, pos); return;
+            case funct3_sb:         exec_stype(insn, pos, funct3, "sb"); return;
+            case funct3_sh:         exec_stype(insn, pos, funct3, "sh"); return;
+            case funct3_sw:         exec_stype(insn, pos, funct3, "sw"); return;
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
 
-        case opcode_load_imm:
-        switch(get_funct3(insn)) //Discriminate further by funct3.
+        case opcode_alu_imm:       
+        switch(funct3) //Discriminate further by funct3.
         {
-            default:                return render_illegal_insn(insn);
-            case funct3_lb:         return render_itype_load(insn, "lb");
-            case funct3_lh:         return render_itype_load(insn, "lh");
-            case funct3_lw:         return render_itype_load(insn, "lw");
-            case funct3_lbu:        return render_itype_load(insn, "lbu");
-            case funct3_lhu:        return render_itype_load(insn, "lhu");
-        }
-        assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
+            default:                exec_illegal_insn(insn, pos); return;
+            case funct3_add:        exec_itype_alu(insn, pos, funct3, "addi"); return;
+            case funct3_slt:        exec_itype_alu(insn, pos, funct3, "slti"); return;
+            case funct3_sltu:       exec_itype_alu(insn, pos, funct3, "sltiu"); return;
+            case funct3_xor:        exec_itype_alu(insn, pos, funct3, "xori"); return;
+            case funct3_or:         exec_itype_alu(insn, pos, funct3, "ori"); return;
+            case funct3_and:        exec_itype_alu(insn, pos, funct3, "andi"); return;
 
-        case opcode_stype:
-        switch(get_funct3(insn)) //Discriminate further by funct3.
-        {
-            default:                return render_illegal_insn(insn);
-            case funct3_sb:         return render_stype(insn, "sb");
-            case funct3_sh:         return render_stype(insn, "sh");
-            case funct3_sw:         return render_stype(insn, "sw");
-        }
-        assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
-
-        case opcode_alu_imm:
-        switch(get_funct3(insn)) //Discriminate further by funct3.
-        {
-            default:                return render_illegal_insn(insn);
-            case funct3_add:        return render_itype_alu(insn, "addi", get_imm_i(insn));
-            case funct3_slt:        return render_itype_alu(insn, "slti", get_imm_i(insn));
-            case funct3_sltu:       return render_itype_alu(insn, "sltiu", get_imm_i(insn));
-            case funct3_xor:        return render_itype_alu(insn, "xori", get_imm_i(insn));
-            case funct3_or:         return render_itype_alu(insn, "ori", get_imm_i(insn));
-            case funct3_and:        return render_itype_alu(insn, "andi", get_imm_i(insn));
-
-            case funct3_sll:        return render_itype_alu(insn, "slli", get_imm_i(insn)%XLEN);
+            case funct3_sll:        exec_itype_alu(insn, pos, funct3, "slli"); return;
             case funct3_srx:
             switch(get_funct7(insn)) //Discriminate further by funct7.
             {
-                default:            return render_illegal_insn(insn);
-                case funct7_sra:    return render_itype_alu(insn, "srai", get_imm_i(insn)%XLEN);
-                case funct7_srl:    return render_itype_alu(insn, "srli", get_imm_i(insn)%XLEN);
+                default:            exec_illegal_insn(insn, pos); return;
+                case funct7_sra:    exec_itype_alu(insn, pos, funct3, "srai"); return;
+                case funct7_srl:    exec_itype_alu(insn, pos, funct3, "srli"); return;
             }
             assert(0 && "unrecognized funct7 code"); //It should be impossible to ever get here!
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
-
+        /*
         case opcode_rtype:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
@@ -299,7 +300,7 @@ void rv32i_hart::exec(uint32_t insn, std::ostream* pos)
  */
 void rv32i_hart::exec_illegal_insn(uint32_t insn, std::ostream* pos)
 {
-    if(pos)
+    if(pos) //If output stream exists.
     {
         *pos << render_illegal_insn(insn);
     }
@@ -319,9 +320,9 @@ void rv32i_hart::exec_illegal_insn(uint32_t insn, std::ostream* pos)
 void rv32i_hart::exec_lui(uint32_t insn, std::ostream* pos)
 {
     uint32_t rd = get_rd(insn);
-    int32_t val = (get_imm_u(insn));
+    int32_t val = (get_imm_u(insn)); //Set register rd to the imm_u value.
 
-    if(pos)
+    if(pos) //If output stream exists.
     {
         std::string s = render_lui(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
@@ -344,9 +345,9 @@ void rv32i_hart::exec_auipc(uint32_t insn, std::ostream* pos)
 {
     uint32_t rd = get_rd(insn);
     int32_t imm_u = get_imm_u(insn);
-    int32_t val = (imm_u + pc);
+    int32_t val = (imm_u + pc); //Add the address of the instruction to the imm_u value and store the result in register rd.
 
-    if(pos)
+    if(pos) //If output stream exists.
     {
         std::string s = render_auipc(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
@@ -370,9 +371,9 @@ void rv32i_hart::exec_jal(uint32_t insn, std::ostream* pos)
 {
     uint32_t rd = get_rd(insn);
     int32_t imm_j = get_imm_j(insn);
-    int32_t val = (imm_j + pc);
+    int32_t val = (imm_j + pc); //Set register rd to address of next instruction then jump to address given by sum of the pc register and imm_j.
 
-    if(pos)
+    if(pos) //If output stream exists.
     {
         std::string s = render_jal(pc,insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
@@ -396,18 +397,419 @@ void rv32i_hart::exec_jal(uint32_t insn, std::ostream* pos)
 void rv32i_hart::exec_jalr(uint32_t insn, std::ostream* pos)
 {
     uint32_t rd = get_rd(insn);
-    uint32_t rs1 = get_rs1(insn);
+    uint32_t rs1Con = regs.get(get_rs1(insn)); //Contents of rs1.
     int32_t imm_i = get_imm_i(insn);
-    int32_t val = ((imm_i + regs.get(rs1)) & 0xfffffffe);
+    int32_t val = ((imm_i + rs1Con) & 0xfffffffe); //Set register rd to address of next instruction, jump to address of rs1 register + imm_i value.
 
-    if(pos)
+    if(pos) //If output stream exists.
     {
         std::string s = render_jalr(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
-        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(pc + 4) << ",  pc = (" << hex::to_hex0x32(imm_i) << " + " << hex::to_hex0x32(regs.get(rs1));
+        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(pc + 4) << ",  pc = (" << hex::to_hex0x32(imm_i) << " + " << hex::to_hex0x32(rs1Con);
         *pos << ") & 0xfffffffe = " <<  hex::to_hex0x32(val) << std::endl;
     }
 
     regs.set(rd , pc + 4);
     pc = val;
 }
+
+/**
+ * @brief Execute B Type instruction.
+ *
+ * Execute between several B Type instructions based on funct3 code.
+ * 
+ * @param insn Instruction to decode and execute.
+ * @param pos Pointer to the output stream (if it exists) to send output.
+ * @param funct3 Value to discriminate b-type instructions.
+ * @param mnemonic String to pass to rendering function.
+ */
+void rv32i_hart::exec_btype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic)
+{
+    uint32_t rs1Con = regs.get(get_rs1(insn)); //Contents of rs1.
+    uint32_t rs2Con = regs.get(get_rs2(insn)); //Contents of rs2.
+    int32_t imm_b = get_imm_b(insn);
+    int32_t val; //Value to adjust pc register.
+
+    if(pos) //If output stream exists.
+    {
+        std::string s = render_btype(pc, insn, mnemonic);
+        *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
+    }
+    
+    switch(funct3)
+    {
+        default:            exec_illegal_insn(insn, pos); return;
+        case funct3_beq:
+        {
+            val = ((rs1Con == rs2Con) ? imm_b : 4); //If rs1 is equal to rs2 then add imm_b to pc register, otherwise 4.
+            if(pos) 
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " == " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_bne:
+        {
+            val = ((rs1Con != rs2Con) ? imm_b : 4); //If rs1 is not equal to rs2 then add imm_b to pc register, otherwise 4.
+            if(pos) 
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " != " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val)<< std::endl;
+            }
+        }
+        break;
+
+        case funct3_blt:
+        {
+
+            val = ((static_cast<int32_t>(rs1Con) < static_cast<int32_t>(rs2Con)) ? imm_b : 4); //If signed val in rs1 is less than signed val in rs2 
+            if(pos)                                                                            //then add imm_b to pc register, otherwise 4.
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " < " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_bge:
+        {
+            val = ((static_cast<int32_t>(rs1Con) >= static_cast<int32_t>(rs2Con)) ? imm_b : 4); //If signed val in rs1 is greater than or equal to 
+            if(pos)                                                                             //signed val in rs2 then add imm_b to pc register, otherwise 4.
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " >= " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_bltu: 
+        {
+             val = ((rs1Con < rs2Con) ? imm_b : 4); //If unsigned val in rs1 is less than unsigned val in rs2 then add imm_b to pc register, otherwise 4.
+            if(pos)
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " <U " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_bgeu:
+        {
+            val = ((rs1Con >= rs2Con) ? imm_b : 4); //If unsigned val in rs1 is greater than or equal to 
+            if(pos)                                 //unsigned val in rs2 then add imm_b to pc register, otherwise 4.
+            {
+                *pos << "// pc += (" << hex::to_hex0x32(rs1Con) << " >=U " << hex::to_hex0x32(rs2Con) << " ? ";
+                *pos << hex::to_hex0x32(imm_b) << " : 4) = " << hex::to_hex0x32(pc + val) << std::endl;
+            }
+        }
+        break;
+    }
+
+    pc += val;
+}
+
+/**
+ * @brief Execute I Type-LOAD instruction.
+ *
+ * Execute between several I Type-LOAD instructions based on funct3 code.
+ * 
+ * @param insn Instruction to decode and execute.
+ * @param pos Pointer to the output stream (if it exists) to send output.
+ * @param funct3 Value to discriminate I Type-LOAD instructions.
+ * @param mnemonic String to pass to rendering function.
+ */
+void rv32i_hart::exec_itype_load(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic)
+{
+    uint32_t rd = get_rd(insn);
+    uint32_t rs1Con = regs.get(get_rs1(insn)); //Contents of rs1.
+    int32_t imm_i = get_imm_i(insn);
+    int32_t val; //Value to set register.
+
+    if(pos) //If output stream exists.
+    {
+        std::string s = render_itype_load(insn, mnemonic);
+        *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
+    }
+    
+    switch(funct3)
+    {
+        default:            exec_illegal_insn(insn, pos); return;
+        case funct3_lb:
+        {
+            val = mem.get8_sx(rs1Con + imm_i); //Set register rd to value of sign-extended byte fetched from memory address given by sum of rs1 and imm_i.
+            if(pos)
+            {
+                *pos << "// " << render_reg(rd) << " = sx(m8(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << ")) = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_lh:
+        {
+            val = mem.get16_sx(rs1Con + imm_i); //Set register rd to value of sign-extended 16-bit little-endian half-word value
+            if(pos)                             //from memory address given by sum of rs1 and imm_i.
+            {
+                *pos << "// " << render_reg(rd) << " = sx(m16(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << ")) = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_lw:
+        {
+            val = mem.get32_sx(rs1Con + imm_i); //Set register rd to value of sign-extended 32-bit little-endian word value
+            if(pos)                             //from memory address given by sum of rs1 and imm_i.
+            {
+                *pos << "// " << render_reg(rd) << " = sx(m32(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << ")) = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_lbu:
+        {
+            val = mem.get8(rs1Con + imm_i); //Set register rd to value of zero-extended byte from memory address given by sum of rs1 and imm_i.
+            if(pos)
+            {
+                *pos << "// " << render_reg(rd) << " = zx(m8(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << ")) = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_lhu: 
+        {
+             val = mem.get16(rs1Con + imm_i); //Set register rd to value of zero-extended 16-bit little-endian half-word value
+            if(pos)                           //from memory address given by sum of rs1 and imm_i.
+            {
+                *pos << "// " << render_reg(rd) << " = zx(m16(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << ")) = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+    }
+
+    regs.set(rd , val);
+    pc += 4;
+}
+
+/**
+ * @brief Execute S Type instruction.
+ *
+ * Execute between several S Type instructions based on funct3 code.
+ * 
+ * @param insn Instruction to decode and execute.
+ * @param pos Pointer to the output stream (if it exists) to send output.
+ * @param funct3 Value to discriminate S Type instructions.
+ * @param mnemonic String to pass to rendering function.
+ */
+void rv32i_hart::exec_stype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic)
+{
+    uint32_t rs1Con = regs.get(get_rs1(insn)); //Contents of rs1.
+    uint32_t rs2Con = regs.get(get_rs2(insn)); //Contents of rs2.
+    int32_t imm_s = get_imm_s(insn);
+    uint32_t addr = (rs1Con + imm_s); //Address to set memory.
+
+    if(pos) //If output stream exists.
+    {
+        std::string s = render_stype(insn, mnemonic);
+        *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
+    }
+
+    switch(funct3)
+    {
+        default:            exec_illegal_insn(insn, pos); return;
+        case funct3_sb:
+        {
+            mem.set8(addr, rs2Con & 0x000000ff); //Set byte of memory at address given by sum of rs1 and imm_s to 8 LSBs of rs2.
+            if(pos)
+            {
+                *pos << "// m8(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_s) << ") = ";
+                *pos << hex::to_hex0x32(rs2Con & 0x000000ff) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_sh:
+        {
+            mem.set16(addr, rs2Con& 0x0000ffff); //Set 16-bit half-word of memory at address given by sum of rs1 and imm_s to 16 LSBs of rs2.
+            if(pos) 
+            {
+                *pos << "// m16(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_s) << ") = ";
+                *pos << hex::to_hex0x32(rs2Con & 0x0000ffff) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_sw:
+        {
+            mem.set32(addr, rs2Con); //Store 32-bit value in rs2 into memory at address given by sum of rs1 and imm_s.
+            if(pos) 
+            {
+                *pos << "// m32(" << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_s) << ") = ";
+                *pos << hex::to_hex0x32(rs2Con) << std::endl;
+            }
+        }
+        break;
+    }
+
+    pc += 4;
+}
+
+void rv32i_hart::exec_itype_alu(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic)
+{
+    uint32_t rd = get_rd(insn);
+    uint32_t rs1Con = regs.get(get_rs1(insn)); //Contents of rs1.
+    int32_t imm_i = get_imm_i(insn);
+    int32_t val; //Value to set register.
+
+    if(pos) //If output stream exists.
+    {
+        std::string s;
+        if(funct3 == funct3_sll || funct3 == funct3_srx)
+        {
+            s = render_itype_alu(insn, mnemonic, imm_i%XLEN);
+        }
+        else
+        {
+            s = render_itype_alu(insn, mnemonic, imm_i);
+        }
+
+        *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
+    }
+
+    switch(funct3) //Discriminate further by funct3.
+    {
+        default:                exec_illegal_insn(insn, pos); return;
+        case funct3_add:
+        {
+            val = rs1Con + imm_i; //Set register rd to rs1 + imm_i.
+            if(pos) 
+            {
+                *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << " = ";
+                *pos << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_slt:     
+        {
+            val = ((static_cast<int32_t>(rs1Con) < imm_i) ? 1 : 0); //If signed integer value in rs1 is less than signed integer value    
+            if(pos)                                                                       //in imm_i, then set rd to 1. Otherwise, set rd to 0. 
+            {
+                *pos << "// " << render_reg(rd) << " = (" << hex::to_hex0x32(rs1Con) << " < " << imm_i;
+                *pos << ") ? 1 : 0 = " << hex::to_hex0x32(val)<< std::endl;
+            }
+        }
+        break;
+
+        case funct3_sltu:        
+        {
+            val = ((rs1Con < static_cast<uint32_t>(imm_i)) ? 1 : 0); //If the unsigned integer value in rs1 is less than the unsigned integer value
+            if(pos)                           //in imm_i, then set rd to 1. Otherwise, set rd to 0.                                                  
+            {
+                *pos << "// " << render_reg(rd) << " = (" << hex::to_hex0x32(rs1Con) << " <U " << imm_i;
+                *pos << ") ? 1 : 0 = " << hex::to_hex0x32(val)<< std::endl;
+            }
+        }
+        break;
+
+        case funct3_xor:     
+        {
+            val = (rs1Con ^ imm_i); //Set register rd to the bitwise xor of rs1 and imm_i.
+            if(pos)                                                     
+            {
+                *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " ^ " << hex::to_hex0x32(imm_i);
+                *pos << " = " << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_or:      
+        {
+            val = (rs1Con | imm_i); //Set register rd to the bitwise or of rs1 and imm_i.
+            if(pos)                                                     
+            {
+                *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " | " << hex::to_hex0x32(imm_i);
+                *pos << " = " << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_and:       
+        {
+            val = (rs1Con & imm_i); //Set register rd to the bitwise and of rs1 and imm_i.
+            if(pos)                                                     
+            {
+                *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " & " << hex::to_hex0x32(imm_i);
+                *pos << " = " << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_sll:        
+        {
+            val = (rs1Con << imm_i%XLEN); //Shift rs1 left by the number of bits specifed in shamt_i and store the result in the rd register.
+            if(pos)                                                     
+            {
+                *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " << " << imm_i%XLEN;
+                *pos << " = " << hex::to_hex0x32(val) << std::endl;
+            }
+        }
+        break;
+
+        case funct3_srx:
+        switch(get_funct7(insn)) //Discriminate further by funct7.
+        {
+            default:            
+            case funct7_sra:
+            {
+                val = (static_cast<int32_t>(rs1Con) >> imm_i%XLEN); //Arithmetic shift rs1 right by the number of bits specifed in shamt_i 
+                if(pos)                                             //and store the result in the rd register.
+                {
+                    *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " >> " << imm_i%XLEN;
+                    *pos << " = " << hex::to_hex0x32(val) << std::endl;
+                }
+            }
+            break;
+
+            case funct7_srl:
+            {
+                val = (rs1Con >> imm_i%XLEN); //Logical shift rs1 right by the number of bits specifed in shamt_i and store the result in the rd register.
+                if(pos)                                                     
+                {
+                    *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " >> " << imm_i%XLEN;
+                    *pos << " = " << hex::to_hex0x32(val) << std::endl;
+                }
+            }
+            break;    
+        }
+    }
+
+    regs.set(rd , val);
+    pc += 4;
+}
+
+/**
+ * @brief Execute ebreak.
+ * 
+ * @param insn 
+ * @param pos 
+ */
+
+/*
+void rv32i_hart::exec_ebreak(uint32_t insn, std::ostream* pos)
+{
+    if(pos)
+    {
+        std::string s = render_ebreak(insn);
+        *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
+        *pos << "// HALT";
+    }
+
+    halt = true;
+    halt_reason = "EBREAK instruction";
+} */
