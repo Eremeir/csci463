@@ -26,21 +26,21 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
     switch(get_opcode(insn)) //Render based on determined opcode.
     {
         default:                return render_illegal_insn(insn);
-        case opcode_lui:        return render_lui(insn);
-        case opcode_auipc:      return render_auipc(insn);
-        case opcode_jal:        return render_jal(addr, insn);
-        case opcode_jalr:       return render_jalr(insn);
+        case opcode_lui:        return render_lui(insn);            //Load Upper Immediate
+        case opcode_auipc:      return render_auipc(insn);          //Add Upper Immediate to PC
+        case opcode_jal:        return render_jal(addr, insn);      //Jump And Link
+        case opcode_jalr:       return render_jalr(insn);           //Jump And Link Register
 
         case opcode_btype:
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:            return render_illegal_insn(insn);
-            case funct3_beq:    return render_btype(addr, insn, "beq");
-            case funct3_bne:    return render_btype(addr, insn, "bne");
-            case funct3_blt:    return render_btype(addr, insn, "blt");
-            case funct3_bge:    return render_btype(addr, insn, "bge");
-            case funct3_bltu:   return render_btype(addr, insn, "bltu");
-            case funct3_bgeu:   return render_btype(addr, insn, "bgeu");
+            case funct3_beq:    return render_btype(addr, insn, "beq");   //Branch Equal
+            case funct3_bne:    return render_btype(addr, insn, "bne");   //Branch Not Equal
+            case funct3_blt:    return render_btype(addr, insn, "blt");   //Branch Less Than
+            case funct3_bge:    return render_btype(addr, insn, "bge");   //Branch Greater or Equal
+            case funct3_bltu:   return render_btype(addr, insn, "bltu");  //Branch Less Than Unsigned    
+            case funct3_bgeu:   return render_btype(addr, insn, "bgeu");  //Branch Greater or Equal Unsigned
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
 
@@ -48,11 +48,11 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:                return render_illegal_insn(insn);
-            case funct3_lb:         return render_itype_load(insn, "lb");
-            case funct3_lh:         return render_itype_load(insn, "lh");
-            case funct3_lw:         return render_itype_load(insn, "lw");
-            case funct3_lbu:        return render_itype_load(insn, "lbu");
-            case funct3_lhu:        return render_itype_load(insn, "lhu");
+            case funct3_lb:         return render_itype_load(insn, "lb");   //Load Byte
+            case funct3_lh:         return render_itype_load(insn, "lh");   //Load Halfword
+            case funct3_lw:         return render_itype_load(insn, "lw");   //Load Word
+            case funct3_lbu:        return render_itype_load(insn, "lbu");  //Load Byte Unsigned
+            case funct3_lhu:        return render_itype_load(insn, "lhu");  //Load Halfword Unsigned
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
 
@@ -60,9 +60,9 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:                return render_illegal_insn(insn);
-            case funct3_sb:         return render_stype(insn, "sb");
-            case funct3_sh:         return render_stype(insn, "sh");
-            case funct3_sw:         return render_stype(insn, "sw");
+            case funct3_sb:         return render_stype(insn, "sb");  //Set Byte
+            case funct3_sh:         return render_stype(insn, "sh");  //Set Halfword
+            case funct3_sw:         return render_stype(insn, "sw");  //Set Word
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
 
@@ -70,20 +70,20 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:                return render_illegal_insn(insn);
-            case funct3_add:        return render_itype_alu(insn, "addi", get_imm_i(insn));
-            case funct3_slt:        return render_itype_alu(insn, "slti", get_imm_i(insn));
-            case funct3_sltu:       return render_itype_alu(insn, "sltiu", get_imm_i(insn));
-            case funct3_xor:        return render_itype_alu(insn, "xori", get_imm_i(insn));
-            case funct3_or:         return render_itype_alu(insn, "ori", get_imm_i(insn));
-            case funct3_and:        return render_itype_alu(insn, "andi", get_imm_i(insn));
+            case funct3_add:        return render_itype_alu(insn, "addi", get_imm_i(insn));   //Add Immediate
+            case funct3_slt:        return render_itype_alu(insn, "slti", get_imm_i(insn));   //Set Less Than Immediate
+            case funct3_sltu:       return render_itype_alu(insn, "sltiu", get_imm_i(insn));  //Set Less Than Immediate Unsigned
+            case funct3_xor:        return render_itype_alu(insn, "xori", get_imm_i(insn));   //Exclusive Or Immediate
+            case funct3_or:         return render_itype_alu(insn, "ori", get_imm_i(insn));    //Or Immediate
+            case funct3_and:        return render_itype_alu(insn, "andi", get_imm_i(insn));   //And Immediate
 
-            case funct3_sll:        return render_itype_alu(insn, "slli", get_imm_i(insn)%XLEN);
+            case funct3_sll:        return render_itype_alu(insn, "slli", get_imm_i(insn)%XLEN);  //Shift Left Logical Immediate
             case funct3_srx:
             switch(get_funct7(insn)) //Discriminate further by funct7.
             {
                 default:            return render_illegal_insn(insn);
-                case funct7_sra:    return render_itype_alu(insn, "srai", get_imm_i(insn)%XLEN);
-                case funct7_srl:    return render_itype_alu(insn, "srli", get_imm_i(insn)%XLEN);
+                case funct7_sra:    return render_itype_alu(insn, "srai", get_imm_i(insn)%XLEN);  //Shift Right Arithmetic Immediate
+                case funct7_srl:    return render_itype_alu(insn, "srli", get_imm_i(insn)%XLEN);  //Shift Right Logical Immediate
             }
             assert(0 && "unrecognized funct7 code"); //It should be impossible to ever get here!
         }
@@ -93,19 +93,19 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:                return render_illegal_insn(insn);
-            case funct3_sll:        return render_rtype(insn, "sll");
-            case funct3_slt:        return render_rtype(insn, "slt");
-            case funct3_sltu:       return render_rtype(insn, "sltu");
-            case funct3_xor:        return render_rtype(insn, "xor");
-            case funct3_or:         return render_rtype(insn, "or");
-            case funct3_and:        return render_rtype(insn, "and");
+            case funct3_sll:        return render_rtype(insn, "sll");   //Shift Left Logical
+            case funct3_slt:        return render_rtype(insn, "slt");   //Set Less Than
+            case funct3_sltu:       return render_rtype(insn, "sltu");  //Set Less Than Unsigned
+            case funct3_xor:        return render_rtype(insn, "xor");   //Exclusive Or
+            case funct3_or:         return render_rtype(insn, "or");    //Or
+            case funct3_and:        return render_rtype(insn, "and");   //And
 
             case funct3_add:
             switch(get_funct7(insn))
             {
                 default:            return render_illegal_insn(insn);
-                case funct7_add:    return render_rtype(insn, "add");
-                case funct7_sub:    return render_rtype(insn, "sub");
+                case funct7_add:    return render_rtype(insn, "add");   //Add
+                case funct7_sub:    return render_rtype(insn, "sub");   //Subtract
             }
             assert(0 && "unrecognized funct7 code"); //It should be impossible to ever get here!
             
@@ -113,8 +113,8 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
             switch(get_funct7(insn)) //Discriminate further by funct7.
             {
                 default:            return render_illegal_insn(insn);
-                case funct7_sra:    return render_rtype(insn, "sra");
-                case funct7_srl:    return render_rtype(insn, "srl");
+                case funct7_sra:    return render_rtype(insn, "sra");   //Shift Right Arithmetic
+                case funct7_srl:    return render_rtype(insn, "srl");   //Shift Right Logical
             }
             assert(0 && "unrecognized funct7 code"); //It should be impossible to ever get here!
         }
@@ -124,23 +124,22 @@ std::string rv32i_decode::decode(uint32_t addr, uint32_t insn)
         switch(get_funct3(insn)) //Discriminate further by funct3.
         {
             default:                return render_illegal_insn(insn);
-            
             case eCode:
             switch(insn) //Check if instruction matches system ecodes.            
             {
                 default:            return render_illegal_insn(insn);
-                case insn_ecall:    return render_ecall(insn);
-                case insn_ebreak:   return render_ebreak(insn);
+                case insn_ecall:    return render_ecall(insn);   //Trap to Debugger
+                case insn_ebreak:   return render_ebreak(insn);  //Trap to Operating System
             }
             assert(0 && "unrecognized code"); //It should be impossible to ever get here!
 
-            case funct3_csrrw:      return render_csrrx(insn, "csrrw");
-            case funct3_csrrs:      return render_csrrx(insn, "csrrs");
-            case funct3_csrrc:      return render_csrrx(insn, "csrrc");
+            case funct3_csrrw:      return render_csrrx(insn, "csrrw");   //Atomic Read/Write
+            case funct3_csrrs:      return render_csrrx(insn, "csrrs");   //Atomic Read and Set
+            case funct3_csrrc:      return render_csrrx(insn, "csrrc");   //Atomic Read and Clear
 
-            case funct3_csrrwi:     return render_csrrxi(insn, "csrrwi");
-            case funct3_csrrsi:     return render_csrrxi(insn, "csrrsi");
-            case funct3_csrrci:     return render_csrrxi(insn, "csrrci");
+            case funct3_csrrwi:     return render_csrrxi(insn, "csrrwi");  //Atomic Read/Write Immediate
+            case funct3_csrrsi:     return render_csrrxi(insn, "csrrsi");  //Atomic Read and Set
+            case funct3_csrrci:     return render_csrrxi(insn, "csrrci");  //Atomic Read and Clear Immediate
         }
         assert(0 && "unrecognized funct3 code"); //It should be impossible to ever get here!
     }
