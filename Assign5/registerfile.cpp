@@ -8,6 +8,8 @@
 //  of the starter code provided for the assignment.
 //
 //***************************************************************************
+#include <iostream>
+#include <iomanip>
 #include "registerfile.h"
 
 /**
@@ -67,7 +69,7 @@ void registerfile::set(uint32_t reg, int32_t val)
  * @param reg Regoster number to fetch from.
  * @return Value of register contents.
  */
-int32_t registerfile::get(uint32_t reg)
+int32_t registerfile::get(uint32_t reg) const
 {
     return regs.at(reg);
 }
@@ -77,8 +79,30 @@ int32_t registerfile::get(uint32_t reg)
  * 
  * @param hdr String to be printed to the left of any output.
  */
-void registerfile::dump(const std::string &hdr)
+void registerfile::dump(const std::string &hdr) const
 {
-    
+    uint32_t regCount = 0; //Number of registers printed.
+    for(uint32_t i = 0; i < regs.size(); i+=8) //Iterate once per line for a set of 8 registers.
+    {
+        if(hdr != "") //If prefix string isn't blank.
+        {
+            std::cout << hdr;
+        }
+        std::cout << std::right << std::setw(3) << "x" + std::to_string(regCount) << " ";
+        for(uint32_t j = 0; j < 8; ++j) //Iterate each register.
+        {
+            std::cout << hex::to_hex32(get(regCount)); //Print the register value.
+            if(j < 7)  
+            {
+                std::cout  << " ";
+                if(j != 0 && (j + 1) % 4 == 0) //Add a space every 4 registers.
+                {
+                    std::cout  << " ";
+                }
+            }
+            ++regCount; 
+        }
+        std::cout << std::endl;
+    }
 }
     

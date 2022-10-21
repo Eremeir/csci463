@@ -55,6 +55,12 @@ private:
     void exec_itype_load(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);  //Execute I Type-LOAD instruction.
     void exec_stype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);       //Execute S Type instruction.
     void exec_itype_alu(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);   //Execute I Type-ALU instruction.
+    void exec_rtype(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);       //Execute R Type instruction.
+
+    void exec_ecall(uint32_t insn, std::ostream* pos);                                          //Execute ecall.
+    void exec_ebreak(uint32_t insn, std::ostream* pos);                                         //Execute ebreak.
+    void exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);   //Execute csrrx instruction.
+    void exec_csrrxi(uint32_t insn, std::ostream* pos, uint32_t funct3, const char *mnemonic);  //Execute csrrxi instruction.
 
     bool halt = { false };
     bool show_instructions = { false };

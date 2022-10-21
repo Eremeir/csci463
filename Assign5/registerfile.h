@@ -26,10 +26,10 @@ public:
     registerfile();  //Constructor
     ~registerfile(); //Destructor
 
-    void reset();                        //Reset and initialize registers.
-    void set(uint32_t reg, int32_t val); //Set register value.
-    int32_t get(uint32_t reg);           //Return register value.
-    void dump(const std::string &hdr);   //Dump register contents.
+    void reset();                              //Reset and initialize registers.
+    void set(uint32_t reg, int32_t val);       //Set register value.
+    int32_t get(uint32_t reg) const;           //Return register value.
+    void dump(const std::string &hdr) const;   //Dump register contents.
     
 private:
     std::vector<int32_t> regs; //Vector to simulate registers.

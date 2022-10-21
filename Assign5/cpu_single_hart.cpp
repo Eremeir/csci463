@@ -38,7 +38,7 @@ void cpu_single_hart::run(uint64_t exec_limit)
 
     if(is_halted())
     {
-        std::cout << get_halt_reason() << std::endl;
+        std::cout << "Execution terminated. Reason: " << get_halt_reason() << std::endl;
     }
 
     std::cout << get_insn_counter() << " instructions executed" << std::endl;
