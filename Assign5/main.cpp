@@ -27,7 +27,7 @@ using std::endl;
  */
 static void usage()
 {
-	cerr << "Usage: rv32i [-d] [-i] [-r] [-z] [-l exec - limit ] [-m hex -mem - size ] infile" << endl;
+	cerr << "Usage: rv32i [-d] [-i] [-r] [-z] [-l exec-limit] [-m hex-mem-size] infile" << endl;
 	cerr << "    -d show disassembly before program execution" << endl;
 	cerr << "    -i show instruction printing during execution" << endl;
 	cerr << "    -l maximum number of instructions to exec" << endl;
@@ -73,51 +73,29 @@ int main(int argc, char **argv)
 	int opt;
 	while ((opt = getopt(argc, argv, "dil:m:rz")) != -1) //Test input arguments.
 	{
-		switch(opt)
+		switch(opt) //Switch on command line argument.
 		{
-		case 'd': //If -d flag specified, show a disassembly of the entire memory before program simulation begins.
-			{
-				dFlag = true;
-				cout << "dflag on" << endl;
-			}
-			break;
+			case 'd': { dFlag = true; } break; //If -d flag specified, show a disassembly of the entire memory before program simulation begins.
 
-		case 'i': //If -i flag specified, show instruction printing during execution.
-			{
-				iFlag = true;
-				cout << "iflag on" << endl;
-			}
-			break;
+			case 'i': { iFlag = true; } break; //If -i flag specified, show instruction printing during execution.
 
-		case 'l': //If -l flag specified, update maximum limit of instructions to execute. Zero means there is no limit.
+			case 'l': //If -l flag specified, update maximum limit of instructions to execute. Zero means there is no limit.
 			{
 				std::istringstream iss(optarg);
 				iss >> exec_limit;
-				cout << "lflag on" << endl;
 			}
 			break;
 
-		case 'm': //If -m flag specified, update memory limit with new value.
+			case 'm': //If -m flag specified, update memory limit with new value.
 			{
 				std::istringstream iss(optarg);
 				iss >> std::hex >> memory_limit;
-				cout << "mflag on" << endl;
 			}
 			break;
 
-		case 'r': //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
-			{
-				rFlag = true;
-				cout << "rflag on" << endl;
-			}
-			break;
+			case 'r': { rFlag = true; } break; //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
 
-		case 'z': //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
-			{
-				zFlag = true;
-				cout << "zflag on" << endl;
-			}
-			break;
+			case 'z': { zFlag = true; } break; //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
 
 		default: /* '?' */
 			usage(); //Specify usage information on invalid arguments.
@@ -130,20 +108,21 @@ int main(int argc, char **argv)
 	memory mem(memory_limit); //Create and initialize memory by set memory limit.
 
 	cpu_single_hart cpu(mem); ////Create a simulated CPU with a single hardware thread, passing in simulated memory.
+	cpu.reset();
 	cpu.set_show_instructions(iFlag);
 	cpu.set_show_registers(rFlag);
 
 	if (!mem.load_file(argv[optind])) //Test if file opened and loaded values.
 		usage();
 
-	if(dFlag)
+	if(dFlag) //Disassemble if dflag specified.
 	{
 		disassemble(mem);
 	}
 
 	cpu.run(exec_limit);
 
-	if(zFlag)
+	if(zFlag) //End with dumps if zflag specified.
 	{
 		cpu.dump();
 		mem.dump();
