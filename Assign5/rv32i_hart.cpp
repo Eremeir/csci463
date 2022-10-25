@@ -95,17 +95,17 @@ void rv32i_hart::set_mhartid(int ID)
  */
 void rv32i_hart::tick(const std::string &hdr)
 {
-    if(is_halted())
+    if(is_halted()) //Check status of hart before continuing execution.
     {   
         return;
     }
     
-    if(show_registers)
+    if(show_registers) //Dump according to set flag.
     {
         dump(hdr);
     }
 
-    if(!(pc % 4 == 0))
+    if(!(pc % 4 == 0)) //Ensure memory is aligned to 4 byte multiple boundaries.
     {
         halt = true;
         halt_reason = "PC alignment error";
@@ -114,16 +114,16 @@ void rv32i_hart::tick(const std::string &hdr)
 
     insn_counter++;
 
-    uint32_t insn = mem.get32(pc);
+    uint32_t insn = mem.get32(pc); //Fetch instruction from memory.
 
-    if(show_instructions)
+    if(show_instructions) //Print insn according to set flag.
     {
         std::cout << hdr << hex::to_hex32(pc) << ": " << hex::to_hex32(insn) << "  ";
         exec(insn, &std::cout);
     }
     else
     {
-        exec(insn, nullptr);
+        exec(insn, nullptr); //Send any output to null.
     }
 }
 
@@ -153,8 +153,8 @@ void rv32i_hart::dump(const std::string &hdr) const
 void rv32i_hart::reset()
 {
     pc = 0;
-    regs.reset();
-    insn_counter = 0;
+    regs.reset(); //Reset the registers. 
+    insn_counter = 0; //Reset hart status variables.
     halt = false;
     halt_reason = "none";
 }
@@ -1047,6 +1047,12 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             }
             else
             {
+                if(csr < 31) //If invalid register requested.
+                {
+                    halt = true;
+                    halt_reason = "Illegal CSR in CRRSS instruction";
+                    return;
+                }
                 val = regs.get(csr);
             }
 
@@ -1067,7 +1073,7 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             val = regs.get(csr);
             if(rs1 != 0)
             {
-                regs.set(csr, (val & regs.get(rs1)));
+                regs.set(csr, (val & ~regs.get(rs1)));
             }
             
             if(pos) 
@@ -1141,7 +1147,7 @@ void rv32i_hart::exec_csrrxi(uint32_t insn, std::ostream* pos, uint32_t funct3, 
             val = regs.get(csr);
             if(zimm != 0)
             {
-                regs.set(csr, (val & regs.get(zimm)));
+                regs.set(csr, (val & ~regs.get(zimm)));
             }
             
             if(pos) 
