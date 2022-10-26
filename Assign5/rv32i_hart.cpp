@@ -55,7 +55,7 @@ bool rv32i_hart::is_halted() const
  * "none"
  * "EBREAK instruction"
  * "ECALL instruction"
- * "Illegal CSR in CRRSS instruction"
+ * "Illegal CSR in CSRRS instruction"
  * "Illegal instruction"
  * "PC alignment error"
  *
@@ -1050,7 +1050,7 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
                 if(csr > 31) //If invalid register requested.
                 {
                     halt = true;
-                    halt_reason = "Illegal CSR in CRRSS instruction";
+                    halt_reason = "Illegal CSR in CSRRS instruction";
                     return;
                 }
                 val = regs.get(csr);
