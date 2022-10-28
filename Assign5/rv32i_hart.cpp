@@ -1034,7 +1034,7 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             regs.set(csr, regs.get(rs1));
             if(pos)
             {
-                *pos << "// " << render_reg(rd) << " = " << render_reg(rs1) << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         }
         break;
@@ -1045,15 +1045,12 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             {
                 val = mhartid;
             }
-            else
+            else  //If invalid register requested.
             {
-                if(csr > 31) //If invalid register requested.
-                {
-                    halt = true;
-                    halt_reason = "Illegal CSR in CSRRS instruction";
-                    return;
-                }
-                val = regs.get(csr);
+                halt = true;
+                halt_reason = "Illegal CSR in CSRRS instruction";
+                return;
+                //val = regs.get(csr); Program specific implimentation treats all other registers as illegal.
             }
 
             if(rs1 != 0)
@@ -1063,7 +1060,7 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             
             if(pos) 
             {
-                *pos << "// " << render_reg(rd) << " = " << regs.get(rs1) << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         } 
         break;
@@ -1078,7 +1075,7 @@ void rv32i_hart::exec_csrrx(uint32_t insn, std::ostream* pos, uint32_t funct3, c
             
             if(pos) 
             {
-                *pos << "// " << render_reg(rd) << " = " << render_reg(rs1) << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         }
         break;
@@ -1122,7 +1119,7 @@ void rv32i_hart::exec_csrrxi(uint32_t insn, std::ostream* pos, uint32_t funct3, 
             regs.set(csr, regs.get(zimm));
             if(pos)
             {
-                *pos << "// " << render_reg(rd) << " = " << zimm << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         }
         break;
@@ -1137,7 +1134,7 @@ void rv32i_hart::exec_csrrxi(uint32_t insn, std::ostream* pos, uint32_t funct3, 
             
             if(pos) 
             {
-                *pos << "// " << render_reg(rd) << " = " << zimm << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         }
         break;
@@ -1147,12 +1144,12 @@ void rv32i_hart::exec_csrrxi(uint32_t insn, std::ostream* pos, uint32_t funct3, 
             val = regs.get(csr);
             if(zimm != 0)
             {
-                regs.set(csr, (val & ~regs.get(zimm)));
+                regs.set(csr, (val & ~zimm));
             }
             
             if(pos) 
             {
-                *pos << "// " << render_reg(rd) << " = " << zimm << std::endl;
+                *pos << "// " << render_reg(rd) << " = " << val << std::endl;
             }
         }
         break;
