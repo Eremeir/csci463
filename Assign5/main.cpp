@@ -65,19 +65,19 @@ int main(int argc, char **argv)
 {
 	uint32_t memory_limit = 0x100;	// default memory size is 0x100
 	uint64_t exec_limit = 0;
-	bool dFlag = false;
-	bool iFlag = false;
-	bool rFlag = false;
-	bool zFlag = false;
+	bool preDisassembly = false;
+	bool showInstructions = false;
+	bool showRegisters = false;
+	bool postDump = false;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "dil:m:rz")) != -1) //Test input arguments.
 	{
 		switch(opt) //Switch on command line argument.
 		{
-			case 'd': { dFlag = true; } break; //If -d flag specified, show a disassembly of the entire memory before program simulation begins.
+			case 'd': { preDisassembly = true; } break; //If -d flag specified, show a disassembly of the entire memory before program simulation begins.
 
-			case 'i': { iFlag = true; } break; //If -i flag specified, show instruction printing during execution.
+			case 'i': { showInstructions = true; } break; //If -i flag specified, show instruction printing during execution.
 
 			case 'l': //If -l flag specified, update maximum limit of instructions to execute. Zero means there is no limit.
 			{
@@ -93,9 +93,9 @@ int main(int argc, char **argv)
 			}
 			break;
 
-			case 'r': { rFlag = true; } break; //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
+			case 'r': { showRegisters = true; } break; //If -r flag specified, show a dump of the hart (GP-registers and pc) status before each instruction is simulated.
 
-			case 'z': { zFlag = true; } break; //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
+			case 'z': { postDump = true; } break; //If -z flag specified, show a dump of the hart status and memory after the simulation has halted.
 
 		default: /* '?' */
 			usage(); //Specify usage information on invalid arguments.
@@ -109,20 +109,20 @@ int main(int argc, char **argv)
 
 	cpu_single_hart cpu(mem); ////Create a simulated CPU with a single hardware thread, passing in simulated memory.
 	cpu.reset();
-	cpu.set_show_instructions(iFlag);
-	cpu.set_show_registers(rFlag);
+	cpu.set_show_instructions(showInstructions);
+	cpu.set_show_registers(showRegisters);
 
 	if (!mem.load_file(argv[optind])) //Test if file opened and loaded values.
 		usage();
 
-	if(dFlag) //Disassemble if dflag specified.
+	if(preDisassembly) //Disassemble if flag specified.
 	{
 		disassemble(mem);
 	}
 
 	cpu.run(exec_limit);
 
-	if(zFlag) //End with dumps if zflag specified.
+	if(postDump) //End with dumps if flag specified.
 	{
 		cpu.dump();
 		mem.dump();
