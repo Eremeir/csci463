@@ -99,6 +99,8 @@ void rv32i_hart::tick(const std::string &hdr)
     {   
         return;
     }
+
+    ++insn_counter;
     
     if(show_registers) //Dump according to set flag.
     {
@@ -111,8 +113,6 @@ void rv32i_hart::tick(const std::string &hdr)
         halt_reason = "PC alignment error";
         return;
     }
-
-    insn_counter++;
 
     uint32_t insn = mem.get32(pc); //Fetch instruction from memory.
 
