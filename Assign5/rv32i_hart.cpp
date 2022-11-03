@@ -328,7 +328,7 @@ void rv32i_hart::exec_lui(uint32_t insn, std::ostream* pos)
     {
         std::string s = render_lui(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
-        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(val) << std::endl;
+        *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(val) << std::endl;
     }
 
     regs.set(rd , val);
@@ -353,7 +353,7 @@ void rv32i_hart::exec_auipc(uint32_t insn, std::ostream* pos)
     {
         std::string s = render_auipc(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
-        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(pc) << " + " << hex::to_hex0x32(imm_u) << " = " << hex::to_hex0x32(val) << std::endl;
+        *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(pc) << " + " << hex::to_hex0x32(imm_u) << " = " << hex::to_hex0x32(val) << std::endl;
     }
 
     regs.set(rd , val);
@@ -379,7 +379,7 @@ void rv32i_hart::exec_jal(uint32_t insn, std::ostream* pos)
     {
         std::string s = render_jal(pc,insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
-        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(pc + 4) << ",  pc = " << hex::to_hex0x32(pc) << " + " << hex::to_hex0x32(imm_j);
+        *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(pc + 4) << ",  pc = " << hex::to_hex0x32(pc) << " + " << hex::to_hex0x32(imm_j);
         *pos << " = " <<  hex::to_hex0x32(val) << std::endl;
     }
 
@@ -407,7 +407,7 @@ void rv32i_hart::exec_jalr(uint32_t insn, std::ostream* pos)
     {
         std::string s = render_jalr(insn);
         *pos << std::setw(instruction_width) << std::setfill(' ') << std::left << s;
-        *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(pc + 4) << ",  pc = (" << hex::to_hex0x32(imm_i) << " + " << hex::to_hex0x32(rs1Con);
+        *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(pc + 4) << ",  pc = (" << hex::to_hex0x32(imm_i) << " + " << hex::to_hex0x32(rs1Con);
         *pos << ") & 0xfffffffe = " <<  hex::to_hex0x32(val) << std::endl;
     }
 
@@ -701,7 +701,7 @@ void rv32i_hart::exec_itype_alu(uint32_t insn, std::ostream* pos, uint32_t funct
             val = rs1Con + imm_i; //Set register rd to rs1 + imm_i.
             if(pos) 
             {
-                *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << " = ";
+                *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(imm_i) << " = ";
                 *pos << hex::to_hex0x32(val) << std::endl;
             }
         }
@@ -906,7 +906,7 @@ void rv32i_hart::exec_rtype(uint32_t insn, std::ostream* pos, uint32_t funct3, c
                 val = rs1Con + rs2Con; //Set register rd to rs1 + rs2.
                 if(pos) 
                 {
-                    *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(rs2Con) << " = ";
+                    *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " + " << hex::to_hex0x32(rs2Con) << " = ";
                     *pos << hex::to_hex0x32(val) << std::endl;
                 }
             }     
@@ -917,7 +917,7 @@ void rv32i_hart::exec_rtype(uint32_t insn, std::ostream* pos, uint32_t funct3, c
                 val = rs1Con - rs2Con; //Set register rd to rs1 - rs2.
                 if(pos) 
                 {
-                    *pos << "// " << render_reg(rd) << " = " << hex :: to_hex0x32(rs1Con) << " - " << hex::to_hex0x32(rs2Con) << " = ";
+                    *pos << "// " << render_reg(rd) << " = " << hex::to_hex0x32(rs1Con) << " - " << hex::to_hex0x32(rs2Con) << " = ";
                     *pos << hex::to_hex0x32(val) << std::endl;
                 }
             }     
