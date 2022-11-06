@@ -9,6 +9,18 @@
 //
 //***************************************************************************
 #include <iostream>
+#include <stdlib.h> //For srand & rand.
+
+constexpr int rows = 1000;  /// < the number of rows in the work matrix
+constexpr int cols = 100;   /// < the number of cols in the work matrix
+int work[rows][cols];       /// < the matrix to be summed
+
+std::mutex stdout_lock;         /// < for serializing access to stdout
+std::mutex counter_lock;        /// < for dynamic balancing only
+volatile int counter = rows;    /// < for dynamic balancing only
+
+std::vector <int> tcount;       /// < count of rows summed for each thread
+std::vector <uint64_t> sum;     /// < the calculated sum from each thread
 
 /**
  * @brief Print usage statement.
@@ -54,30 +66,49 @@ void sum_dynamic(int tid)
  */
 int main(int argc, char **argv)
 {
-    constexpr int rows = 1000;  /// < the number of rows in the work matrix
-    constexpr int cols = 100;   /// < the number of cols in the work matrix
-    int work[rows][cols];       /// < the matrix to be summed
-
-    std::mutex stdout_lock;         /// < for serializing access to stdout
-    std::mutex counter_lock;        /// < for dynamic balancing only
-    volatile int counter = rows;    /// < for dynamic balancing only
-
-    std::vector <int> tcount;       /// < count of rows summed for each thread
-    std::vector <uint64_t> sum;     /// < the calculated sum from each thread
+    bool useDynamic = false;
+    int maxThreads = std::thread::hardware_concurrency();
+    int numThreads = 2;
+    srand(0x1234);
 
 	int opt;
 	while ((opt = getopt(argc, argv, "dt:")) != -1) //Test input arguments.
 	{
 		switch(opt) //Switch on command line argument.
 		{
-			case 'd': {} break; 
+			case 'd': {useDynamic = true} break; 
 
-			case 't': {} break; 
+			case 't': 
+            {
+                int requestThreads;
+                std::istringstream iss(optarg);
+				iss >> requestThreads;
+
+                if(requestThreads <= maxThreads)
+                {
+                    numThreads = requestThreads;
+                }
+                else
+                {
+                    numThreads = maxThreads;
+                }
+            } 
+            break; 
 
 		default: /* '?' */
 			usage(); //Specify usage information on invalid arguments.
 		}
 	}
+
+    for(int i = 0; i < rows; i++)
+    {
+        for(int j = 0; j < cols; j++)
+        {
+            work.at(i,j) = rand();
+        } 
+    }
+
+    std::cout << maxThreads << " concurrent threads supported." << std::endl;
 
 	return 0;
 }
