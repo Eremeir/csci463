@@ -43,18 +43,34 @@ static void usage()
 
 /**
  * @brief Sum with static load balancing.
+ *
+ * Sum the cells of the work matrix with worload divided evenly by the number of cooperating threads.
  * 
- * @param tid Thread ID
- * @param num_threads 
+ * @param tid Thread ID indicating which thread is running this function.
+ * @param num_threads Total number of threads executing this function.
  */
 void sum_static(int tid, int num_threads)
 {
+    int cellCount = 0;
+    uint64_t cellSum = 0;
     stdout_lock.lock();
     std::cout << "Thread " << tid << " starting" << std::endl;
     stdout_lock.unlock();
 
+    for(int i = tid; i < rows; i+= num_threads) //Add all cells in matrix, dividing work up flatly by threads contributing.
+    {
+        cellCount++;
+        for(int j = 0; j < cols; j++)
+        {
+            cellSum += work[i][j];
+        } 
+    }
+
+    tcount.push_back(cellCount);
+    sum.push_back(cellSum);
+
     stdout_lock.lock();
-    std::cout << "Thread " << tid << " ending" << std::endl;
+    std::cout << "Thread " << tid << " ending tcount=" << cellCount << " sum=" << cellSum << std::endl;
     stdout_lock.unlock();
 }
 
@@ -69,13 +85,22 @@ void sum_dynamic(int tid)
     std::cout << "Thread " << tid << " starting" << std::endl;
     stdout_lock.unlock();
 
+
+
+
+
+
+
+
     stdout_lock.lock();
     std::cout << "Thread " << tid << " ending" << std::endl;
     stdout_lock.unlock();
 }
 
 /**
- * @brief 
+ * @brief Multithreaded Matrix Summation Subroutine
+ *
+ * Sum all the cells of a randomly populated matrix using static or dynamic load balancing then output results.
  * 
  * @param argc Count of arguments entered.
  * @param argv Argument variables.
@@ -88,6 +113,8 @@ int main(int argc, char **argv)
     bool useDynamic = false;
     int maxThreads = std::thread::hardware_concurrency();
     int numThreads = 2;
+    int total_work = 0;
+    uint64_t gross_sum = 0;
     srand(0x1234);
 
 	int opt;
@@ -120,9 +147,8 @@ int main(int argc, char **argv)
 	}
 
     std::cout << maxThreads << " concurrent threads supported." << std::endl;
-
     
-    for(int i = 0; i < rows; i++)
+    for(int i = 0; i < rows; i++) //Populate matrix with values from srand.
     {
         for(int j = 0; j < cols; j++)
         {
@@ -145,13 +171,23 @@ int main(int argc, char **argv)
         }
     }
 
-    for(int l = 0; l < numThreads; ++l) //Join and delete threads.
+    for(int t = 0; t < numThreads; ++t) //Join and delete threads.
     {
-        threads.at(l)->join();
-        delete threads.at(l);
+        threads.at(t)->join();
+        delete threads.at(t);
     }
 
-    std::cout << "main() exiting" << std::endl;
+    for(auto &i : tcount) //Total up workload shares.
+    {
+        total_work += i;
+    }
+
+    for(auto &i : sum) //Total up sum from full matrix.
+    {
+        gross_sum += i;
+    }
+
+    std::cout << "main() exiting, total_work=" << total_work << " gross_sum=" << gross_sum << std::endl;
 
 	return 0;
 }
