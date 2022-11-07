@@ -51,33 +51,30 @@ static void usage()
  */
 void sum_static(int tid, int num_threads)
 {
-    int cellCount = 0;
-    uint64_t cellSum = 0;
     stdout_lock.lock();
     std::cout << "Thread " << tid << " starting" << std::endl;
     stdout_lock.unlock();
 
     for(int i = tid; i < rows; i+= num_threads) //Add all cells in matrix, dividing work up flatly by threads contributing.
     {
-        cellCount++;
+        ++tcount.at(tid);
         for(int j = 0; j < cols; j++)
         {
-            cellSum += work[i][j];
+            sum.at(tid) += work[i][j];
         } 
     }
 
-    tcount.push_back(cellCount);
-    sum.push_back(cellSum);
-
     stdout_lock.lock();
-    std::cout << "Thread " << tid << " ending tcount=" << cellCount << " sum=" << cellSum << std::endl;
+    std::cout << "Thread " << tid << " ending tcount=" << tcount.at(tid) << " sum=" << sum.at(tid) << std::endl;
     stdout_lock.unlock();
 }
 
 /**
  * @brief Sum with dynamic load balancing.
+ *
+ * Sum the cells of the work matrix with worload divided dynamically to each of the cooperating threads.
  * 
- * @param tid Thread ID
+ * @param tid Thread ID indicating which thread is running this function.
  */
 void sum_dynamic(int tid)
 {
@@ -85,15 +82,36 @@ void sum_dynamic(int tid)
     std::cout << "Thread " << tid << " starting" << std::endl;
     stdout_lock.unlock();
 
+    bool done = false;
+    while(!done)
+    {
+        int count_copy;
+        counter_lock.lock();
+        {
+            if(counter > 0)
+            {
+                --counter;
+            }
+            else
+            {
+                done = true;
+            }
+            count_copy = counter;
+        }   
+        counter_lock.unlock();
 
-
-
-
-
-
+        if(!done)
+        {
+            ++tcount.at(tid);
+            for(int i = 0; i < cols; i++)
+            {
+                sum.at(tid) += work[count_copy][i];
+            }
+        }
+    }
 
     stdout_lock.lock();
-    std::cout << "Thread " << tid << " ending" << std::endl;
+    std::cout << "Thread " << tid << " ending tcount=" << tcount.at(tid) << " sum=" << sum.at(tid) << std::endl;
     stdout_lock.unlock();
 }
 
@@ -147,6 +165,8 @@ int main(int argc, char **argv)
 	}
 
     std::cout << maxThreads << " concurrent threads supported." << std::endl;
+    tcount.resize(numThreads, 0);  //Presize the totalling vectors to the size needed for full execution.
+    sum.resize(numThreads, 0);
     
     for(int i = 0; i < rows; i++) //Populate matrix with values from srand.
     {
@@ -158,33 +178,25 @@ int main(int argc, char **argv)
 
     if(useDynamic) //If using dynamic load balancing.
     {   
-        for(int k = 0; k < numThreads; ++k)
+        for(int i = 0; i < numThreads; i++)
         {
-            threads.push_back(new std::thread(sum_dynamic, k));
+            threads.push_back(new std::thread(sum_dynamic, i));
         }
     }
     else           //Using static load balancing.
     {
-        for(int k = 0; k < numThreads; ++k)
+        for(int i = 0; i < numThreads; i++)
         {
-            threads.push_back(new std::thread(sum_static, k, numThreads));
+            threads.push_back(new std::thread(sum_static, i, numThreads));
         }
     }
 
-    for(int t = 0; t < numThreads; ++t) //Join and delete threads.
+    for(int i = 0; i < numThreads; i++) //Join and delete threads.
     {
-        threads.at(t)->join();
-        delete threads.at(t);
-    }
-
-    for(auto &i : tcount) //Total up workload shares.
-    {
-        total_work += i;
-    }
-
-    for(auto &i : sum) //Total up sum from full matrix.
-    {
-        gross_sum += i;
+        threads.at(i)->join();
+        delete threads.at(i);
+        total_work += tcount.at(i); //Total up workload shares.
+        gross_sum += sum.at(i);     //Total up sum from full matrix.
     }
 
     std::cout << "main() exiting, total_work=" << total_work << " gross_sum=" << gross_sum << std::endl;
