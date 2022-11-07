@@ -9,6 +9,11 @@
 //
 //***************************************************************************
 #include <iostream>
+#include <sstream>
+#include <getopt.h>
+#include <thread>
+#include <mutex>
+#include <vector>
 #include <stdlib.h> //For srand & rand.
 
 constexpr int rows = 1000;  /// < the number of rows in the work matrix
@@ -30,9 +35,9 @@ std::vector <uint64_t> sum;     /// < the calculated sum from each thread
  */
 static void usage()
 {
-	cerr << "Usage: reduce [-d] [-t num]" << endl;
-	cerr << "    -d use dynamic load balancing (default uses static load balancing)" << endl;
-	cerr << "    -t specify number of threads to use (default starts two threads)" << endl
+	std::cerr << "Usage: reduce [-d] [-t num]" << std::endl;
+	std::cerr << "    -d use dynamic load balancing (default uses static load balancing)" << std::endl;
+	std::cerr << "    -t specify number of threads to use (default starts two threads)" << std::endl;
 	exit(1); //Terminate program.
 }
 
@@ -44,7 +49,13 @@ static void usage()
  */
 void sum_static(int tid, int num_threads)
 {
+    stdout_lock.lock();
+    std::cout << "Thread " << tid << " starting" << std::endl;
+    stdout_lock.unlock();
 
+    stdout_lock.lock();
+    std::cout << "Thread " << tid << " ending" << std::endl;
+    stdout_lock.unlock();
 }
 
 /**
@@ -54,18 +65,26 @@ void sum_static(int tid, int num_threads)
  */
 void sum_dynamic(int tid)
 {
+    stdout_lock.lock();
+    std::cout << "Thread " << tid << " starting" << std::endl;
+    stdout_lock.unlock();
 
+    stdout_lock.lock();
+    std::cout << "Thread " << tid << " ending" << std::endl;
+    stdout_lock.unlock();
 }
 
 /**
  * @brief 
  * 
- * @param argc 
- * @param argv 
- * @return int 
+ * @param argc Count of arguments entered.
+ * @param argv Argument variables.
+ * @return int 0 to signal end of program execution.
  */
 int main(int argc, char **argv)
 {
+    std::vector<std::thread*> threads;
+
     bool useDynamic = false;
     int maxThreads = std::thread::hardware_concurrency();
     int numThreads = 2;
@@ -76,19 +95,19 @@ int main(int argc, char **argv)
 	{
 		switch(opt) //Switch on command line argument.
 		{
-			case 'd': {useDynamic = true} break; 
+			case 'd': {useDynamic = true;} break; //If d flag specified, threads are to use dynamic load balancing.
 
-			case 't': 
+			case 't': //If t flag specified, use requested thread count if possible.
             {
                 int requestThreads;
                 std::istringstream iss(optarg);
 				iss >> requestThreads;
 
-                if(requestThreads <= maxThreads)
+                if(requestThreads <= maxThreads) //If requested number of threads are not more than is available.
                 {
                     numThreads = requestThreads;
                 }
-                else
+                else                            //Use the maximum available if requested number is too high.
                 {
                     numThreads = maxThreads;
                 }
@@ -100,15 +119,39 @@ int main(int argc, char **argv)
 		}
 	}
 
+    std::cout << maxThreads << " concurrent threads supported." << std::endl;
+
+    
     for(int i = 0; i < rows; i++)
     {
         for(int j = 0; j < cols; j++)
         {
-            work.at(i,j) = rand();
+            work[i][j] = rand();
         } 
     }
 
-    std::cout << maxThreads << " concurrent threads supported." << std::endl;
+    if(useDynamic) //If using dynamic load balancing.
+    {   
+        for(int k = 0; k < numThreads; ++k)
+        {
+            threads.push_back(new std::thread(sum_dynamic, k));
+        }
+    }
+    else           //Using static load balancing.
+    {
+        for(int k = 0; k < numThreads; ++k)
+        {
+            threads.push_back(new std::thread(sum_static, k, numThreads));
+        }
+    }
+
+    for(int l = 0; l < numThreads; ++l) //Join and delete threads.
+    {
+        threads.at(l)->join();
+        delete threads.at(l);
+    }
+
+    std::cout << "main() exiting" << std::endl;
 
 	return 0;
 }
