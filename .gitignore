@@ -9,3 +9,5 @@ prog2
 memsim
 rv32i
 reduce
+client
+server
