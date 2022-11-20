@@ -32,6 +32,7 @@
 
 	Modifications to make this build & run on Linux by John Winans, 2021
 */
+
 //***************************************************************************
 //
 //  Matt Borek
@@ -57,44 +58,58 @@
 #include <string>
 #include <getopt.h>
 
-constexpr const char data[] = "THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' ANDANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THEIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSEARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLEFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIALDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODSOR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICTLIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAYOUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OFSUCH DAMAGE. THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' ANDANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THEIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSEARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLEFOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIALDAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODSOR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICTLIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAYOUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OFSUCH DAMAGE.";
-
+/**
+ * @brief Safe Write
+ *
+ * Properly write the whole buffer ensuring all bytes werw written.
+ * 
+ * @param fd File descriptor to write to.
+ * @param buffer of bytes to write from.
+ * @param len length of the buffer occupied by bytes.
+ * @return ssize_t return code to indicate successes or failure.
+ */
 static ssize_t safe_write(int fd, const char *buffer, size_t len)
 {
-    while(len > 0)
+    while(len > 0) //While write returns that the length read was above 0.
     {
         ssize_t wlen = write(fd, buffer, len);
         if(wlen == -1) //write returned an unrecoverable error, errno is set.
         {
             return -1;
         }
-        //std::cout << "sent " << wlen << " bytes" << std::endl;
-        len -= wlen; //reduce number of remaining bytes to send
-        buffer += wlen; //advance the buffer pointer past the written data
+        len -= wlen; //decrement number of remaining bytes to send by length written.
+        buffer += wlen; //advance the buffer pointer by length written.
     }
     return len; //if we get here when we sent the full requested length!
 }
 
+/**
+ * @brief Print Server Response
+ *
+ * Read the server's response from the socket buffer and write to stdout.
+ * 
+ * @param fd File descriptor to read from to.
+ * @return int 
+ */
 static int print_response(int fd)
 {
-    char buffer[2048];
-    int returnVal = 1; //prime the while loop
-    while(returnVal > 0)
+    char responseBuffer[2048];
+    int returnVal = 1; //prime the while loop.
+    while(returnVal > 0) //While read returns that the length read was above 0.
     {
-        if((returnVal = read(fd, buffer, sizeof(buffer)-1)) == -1)
+        if((returnVal = read(fd, responseBuffer, sizeof(responseBuffer))) < 0)
         {
             perror("reading stream message");
-            return -1; //let caller know badness happened
+            return -1; //Let caller know that read operation failed.
         }
-        else if(returnVal > 0)
+        
+        if (safe_write(fileno(stdout), responseBuffer, returnVal) < 0) //Write from the response buffer to stdout.
         {
-            buffer[returnVal] = '\0';
-            std::cout << "---- read " << returnVal << " bytes ---->>>" << buffer << "<<<" << std::endl;
+            perror("writing on stream socket");
         }
     }
     return 0; //all went OK
 }
-
 
 /**
  * @brief Print usage statement.
@@ -110,11 +125,15 @@ static void usage()
 	exit(1); //Terminate program.
 }
 
-/*
- * This program creates a socket and initiates a connection with the socket
- * given in the command line.  One message is sent over the connection and
- * then the socket is closed, ending the connection. The form of the command
- * line is streamwrite hostname portnumber
+/**
+ * @brief Client access program.
+ *
+ * Create a socket and initiate a connection with the socket supplied in the command line. 
+ * Then, send input from stdin and recieve a response from the server, writing that to stdout.
+ *
+ * @param argc Count of arguments entered.
+ * @param argv Argument variables.
+ * @return int 0 to signal end of program execution.
  */
 int main(int argc, char *argv[])
 {
@@ -138,7 +157,7 @@ int main(int argc, char *argv[])
 
     signal(SIGPIPE, SIG_IGN); //Ignore the sigpipe signal.
 
-    if(optind >= argc)
+    if(optind >= argc) //If port number was not supplied.
     {
         std::cerr << "ERROR: missing port number argument" << std::endl;
         usage();
@@ -147,14 +166,12 @@ int main(int argc, char *argv[])
     int sock;
     struct sockaddr_in server;
     
-    /* Create socket */
-    sock = socket(AF_INET, SOCK_STREAM, 0);
+    sock = socket(AF_INET, SOCK_STREAM, 0); //Create socket.
     if (sock < 0)
     {
         perror("opening stream socket");
         exit(1);
     }
-    /* Connect socket using name specified by command line. */
     server.sin_family = AF_INET; //Using IPV4
 
     if(inet_pton(AF_INET, IPNum.c_str(), &server.sin_addr) <= 0) //Convert IPV4 and IPV6 text addresses to binary form.
@@ -165,12 +182,11 @@ int main(int argc, char *argv[])
 
     server.sin_port = htons(atoi(argv[optind]));
 
-    if (connect(sock, (sockaddr*)&server, sizeof(server)) < 0)
+    if (connect(sock, (sockaddr*)&server, sizeof(server)) < 0) //Connect stream socket to server.
     {
         perror("connecting stream socket");
         exit(1);
     }
-    (void)data;
 
     char inputBuffer[2048];
     ssize_t returnVal;
@@ -181,16 +197,16 @@ int main(int argc, char *argv[])
             perror("reading stream message");
         }
 
-    } while(returnVal != 0);
+        if (safe_write(sock, inputBuffer, returnVal) < 0) //Write from the input buffer through the socket connection.
+        {
+            perror("writing on stream socket");
+        }
 
-    if (safe_write(sock, inputBuffer, sizeof(inputBuffer)) < 0) //Write from the input duffer through the socket connection.
-    {
-        perror("writing on stream socket");
-    }
+    } while(returnVal != 0); //Read from the input buffer until read returns that the length read was 0.
 
-    shutdown(sock, SHUT_WR);
-    print_response(sock);
+    shutdown(sock, SHUT_WR); //Shut the write pipe.
+    print_response(sock); //Read from socket and write response to stdout.
 
-    close(sock);
+    close(sock); //Close the socket.
     return 0;
 }

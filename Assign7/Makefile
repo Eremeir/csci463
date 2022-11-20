@@ -1,4 +1,10 @@
-CXXFLAGS+= -g -Wall -Werror -std=c++14
+#
+# Assignment #7
+# AUTHOR:  Matt Borek
+#
+
+CXX = g++
+CXXFLAGS = -g -Wall -Werror -std=c++14
 
 PROGS=server client
 

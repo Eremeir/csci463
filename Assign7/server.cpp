@@ -32,6 +32,7 @@
 
     Modifications to make this build & run on Linux by John Winans, 2021
 */
+
 //***************************************************************************
 //
 //  Matt Borek
@@ -56,27 +57,27 @@
 #include <sstream>
 #include <getopt.h>
 
-/*
- * This program creates a socket and then begins an infinite loop. Each time
- * through the loop it accepts a connection and prints out messages from it.
- * When the connection breaks, or a termination message comes through, the
- * program accepts a new connection.
+/**
+ * @brief Safe Write
+ *
+ * Properly write the whole buffer ensuring all bytes werw written.
+ * 
+ * @param fd File descriptor to write to.
+ * @param buffer of bytes to write from.
+ * @param len length of the buffer occupied by bytes.
+ * @return ssize_t return code to indicate successes or failure.
  */
-
-
-
-static ssize_t safe_write(int fd, const char *buf, size_t len)
+static ssize_t safe_write(int fd, const char *buffer, size_t len)
 {
-    while(len > 0)
+    while(len > 0) //While write returns that the length read was above 0.
     {
-        ssize_t wlen = write(fd, buf, len);
+        ssize_t wlen = write(fd, buffer, len);
         if(wlen == -1) //write returned an unrecoverable error, errno is set.
         {
             return -1;
         }
-        //std::cout << "sent " << wlen << " bytes" << std::endl;
-        len -= wlen; //reduce number of remaining bytes to send
-        buf += wlen; //advance the buffer pointer past the written data
+        len -= wlen; //decrement number of remaining bytes to send by length written.
+        buffer += wlen; //advance the buffer pointer by length written.
     }
     return len; //if we get here when we sent the full requested length!
 }
@@ -94,6 +95,16 @@ static void usage()
 	exit(1); //Terminate program.
 }
 
+/**
+ * @brief Server host program.
+ *
+ * Create a socket and start an infinite loop, accepting connections and calculating a checksum from read messages. 
+ * When the connection closes or terminates, new connections may be established.
+ *
+ * @param argc Count of arguments entered.
+ * @param argv Argument variables.
+ * @return int 0 to signal end of program execution.
+ */
 int main(int argc, char **argv)
 {
 	int sock;
@@ -129,78 +140,81 @@ int main(int argc, char **argv)
 
 	signal(SIGPIPE, SIG_IGN); //Ignore the sigpipe signal.
 
-	/* Create socket */
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0); //Create socket.
 	if (sock < 0)
 	{
 		perror("opening stream socket");
 		exit(1);
 	}
 
-	if(bind(sock, (sockaddr*)&server, sizeof(server)))
+	if(bind(sock, (sockaddr*)&server, sizeof(server))) //Bind address to socket.
 	{
 		perror("binding stream socket");
 		exit(1);
 	}
-	/* Find out assigned port number and print it out */
-	length = sizeof(server);
-	if(getsockname(sock, (sockaddr*)&server, &length))
+
+	if(getsockname(sock, (sockaddr*)&server, &length))  //Find out assigned port number and print it out.
 	{
 		perror("getting socket name");
 		exit(1);
 	}
 	std::cout << "Socket has port #" << ntohs(server.sin_port) << std::endl;
 
-	/* Start accepting connections */
-	listen(sock, 5);
+	listen(sock, 5); //Start listening for incoming connections.
 	do 
 	{
 		struct sockaddr_in client;
 		socklen_t client_len = sizeof(client);
-		msgsock = accept(sock, (struct sockaddr*)&client, &client_len);
+		msgsock = accept(sock, (struct sockaddr*)&client, &client_len); //Accept connection.
 		if (msgsock == -1)
 		{
 			perror("accept");
 		}
 			
 		else
-		{
-			inet_ntop(client.sin_family, &client.sin_addr, buffer, sizeof(buffer));
+		{ 
+			uint32_t byteCount = 0; //To count total number of bytes.
+			uint16_t checksum = 0; 	//To sum from each byte,
+			uint8_t bufferByte = 0; //To hold a byte temporarily for summing.
+
+			inet_ntop(client.sin_family, &client.sin_addr, buffer, sizeof(buffer)); //Convert the network address into a character string.
 			std::cout << "Accepted connection from '" << buffer << "', port " << ntohs(client.sin_port) << std::endl;
 
 			do
 			{
-				if ((returnVal = read(msgsock, buffer, sizeof(buffer))) < 0)
+				if ((returnVal = read(msgsock, buffer, sizeof(buffer))) < 0) //Read from the socket to buffer.
 				{
 					perror("reading stream message");
 				}
 				
-				if (returnVal == 0)
+				if (returnVal == 0) //If there is nothing left to read, print that the connection is ending.
 				{
 					std::cout << "Ending connection" << std::endl;
 				}
 				
 				else
 				{
-					std::cout << "---- read " << returnVal << " bytes ---->>>" << buffer << "<<<" << std::endl;
+					for(ssize_t i = 0; i < returnVal; i++) //Iterate through the buffer and calculate checksum.
+					{
+						bufferByte = buffer[i];
+						checksum += bufferByte;
+					}
+
+					byteCount += returnVal;
 				}
 				
-			} while(returnVal != 0);
+			} while(returnVal != 0); //Read from the input buffer until read returns that the length read was 0.
 
-			returnVal = safe_write(msgsock, "thank you!!!", 12);
+			std::ostringstream oss;
+			oss << "Sum: " << checksum << " Len: " << byteCount << "\n"; //Create a string object to send back to client.
+
+			returnVal = safe_write(msgsock, oss.str().c_str(), oss.str().length()); //Write to socket from string object.
 			if(returnVal < 0)
 			{
 				perror("write failed");
 			}
-			std::cout << "---- write " << returnVal << " bytes" << std::endl;
-			returnVal = safe_write(msgsock, "very much", 9);
-			if(returnVal < 0)
-			{
-				perror("write failed");
-			}
-			std::cout << "---- write " << returnVal << " bytes" << std::endl;
 
-			close(msgsock);
+			close(msgsock); //Close the socket.
 		}
 	} while (true);
 	/*
@@ -208,4 +222,5 @@ int main(int argc, char **argv)
 	* never explicitly closed.  However, all sockets will be closed
 	* automatically when a process is killed or terminates normally.
 	*/
+	return 0;
 }
